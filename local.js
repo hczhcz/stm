@@ -2,36 +2,17 @@
 
 const net = require('net');
 
-const socks5parse = require('./socks5.parse');
-const socks5write = require('./socks5.write');
+const socks5 = require('./socks5');
 
 const createLocal = () => {
     return new net.Server((socket) => {
-        const handler = socks5parse.parseAuth(
-            socket,
-            socks5write.writeAuth,
-            () => {
-                return socks5parse.parseRequest(
-                    socket,
-                    socks5write.writeReply,
-                    socks5write.writeError,
-                    // TODO
-                    function *(task) {
-                        console.error(task);
-                    }
-                );
-            }
-        );
-
-        handler.next();
+        const handler = socks5.accept(socket);
 
         socket.on('data', (chunk) => {
             for (let i = 0; i < chunk.length; i += 1) {
                 handler.next(chunk[i]);
             }
-        });
-
-        socket.on('error', (err) => {
+        }).on('error', (err) => {
             console.error('request error');
             console.error(err);
         }).on('end', () => {

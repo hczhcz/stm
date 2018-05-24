@@ -1,10 +1,10 @@
 'use strict';
 
-const parseAuth = function *(socket, writeAuth, next) {
+const parseAuth = function *(socket, next, authError, parseError) {
     // version
 
     if ((yield) !== 0x05) {
-        socket.end();
+        yield *parseError();
 
         return;
     }
@@ -21,22 +21,17 @@ const parseAuth = function *(socket, writeAuth, next) {
     }
 
     if (auth) {
-        // method: no authentication required
-        writeAuth(socket, 0x00);
-
-        yield* next();
+        yield *next();
     } else {
-        // method: no acceptable methods
-        writeAuth(socket, 0xFF);
-        socket.end();
+        yield *authError();
     }
 };
 
-const parseRequest = function *(socket, writeReply, writeError, next) {
+const parseRequest = function *(socket, next, commandError, addressError, parseError) {
     // version
 
     if ((yield) !== 0x05) {
-        socket.end();
+        yield *parseError();
 
         return;
     }
@@ -50,18 +45,16 @@ const parseRequest = function *(socket, writeReply, writeError, next) {
             task.command = 'connect';
 
             break;
-        // case 0x02:
-        //     task.command = 'bind';
+        case 0x02:
+            task.command = 'bind';
 
-        //     break;
-        // case 0x03:
-        //     task.command = 'udpassociate';
+            break;
+        case 0x03:
+            task.command = 'udpassociate';
 
-        //     break;
+            break;
         default:
-            // reply: command not supported
-            writeError(socket, 0x07);
-            socket.end();
+            yield *commandError();
 
             return;
     }
@@ -89,9 +82,7 @@ const parseRequest = function *(socket, writeReply, writeError, next) {
 
             break;
         default:
-            // reply: address type not supported
-            writeError(socket, 0x07);
-            socket.end();
+            yield *addressError();
 
             return;
     }
@@ -108,7 +99,7 @@ const parseRequest = function *(socket, writeReply, writeError, next) {
 
     // TODO: reply?
 
-    yield* next(task);
+    yield *next(task);
 };
 
 module.exports = {
