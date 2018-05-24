@@ -43,6 +43,9 @@ const writeReply = (socket, addressType, address, port) => {
             ]));
 
             break;
+        default:
+            // never reach
+            throw Error();
     }
 
     socket.write(address);

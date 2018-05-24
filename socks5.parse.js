@@ -41,7 +41,7 @@ const parseRequest = function *(socket, writeReply, writeError, next) {
         return;
     }
 
-    let task = {};
+    const task = {};
 
     // command
 
@@ -114,4 +114,4 @@ const parseRequest = function *(socket, writeReply, writeError, next) {
 module.exports = {
     parseAuth: parseAuth,
     parseRequest: parseRequest,
-}
+};
