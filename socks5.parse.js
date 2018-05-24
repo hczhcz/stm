@@ -68,17 +68,17 @@ const parseRequest = function *(socket, next, commandError, addressError, parseE
     switch (yield) {
         case 0x01:
             task.addressType = 'ipv4';
-            task.address = new Buffer(4);
+            task.address = Buffer.alloc(4);
 
             break;
         case 0x03:
             task.addressType = 'domainname';
-            task.address = new Buffer(yield);
+            task.address = Buffer.alloc(yield);
 
             break;
         case 0x04:
             task.addressType = 'ipv6';
-            task.address = new Buffer(16);
+            task.address = Buffer.alloc(16);
 
             break;
         default:
