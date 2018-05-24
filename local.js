@@ -6,7 +6,18 @@ const socks5 = require('./socks5');
 
 const createLocal = () => {
     return new net.Server((socket) => {
-        const handler = socks5.accept(socket);
+        const handler = socks5.accept(
+            socket,
+            (addressType, address, port, connect, error) => {
+                // connect
+            },
+            (addressType, address, port, bind, connect, error) => {
+                // bind
+            },
+            (addressType, address, port, udpAssociate, error) => {
+                // udp associate
+            }
+        );
 
         socket.on('data', (chunk) => {
             for (let i = 0; i < chunk.length; i += 1) {

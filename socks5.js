@@ -3,76 +3,125 @@
 const socks5parse = require('./socks5.parse');
 const socks5write = require('./socks5.write');
 
-const handleClose = (socket) => {
-    socket.end();
+const accept = (socket, connect, bind, udpAssociate) => {
+    const handleClose = () => {
+        socket.end();
 
-    return function *() {
-        // nothing
+        return function *() {
+            // nothing
+        };
     };
-};
 
-const handleAuth = (socket) => {
-    return socks5parse.parseAuth(
-        socket,
-        () => {
-            // next
+    const handleRequest = () => {
+        return socks5parse.parseRequest(
+            socket,
+            (task) => {
+                // next
 
-            // method: no authentication required
-            socks5write.writeAuth(socket, 0x00);
+                switch (task.command) {
+                    case 'connect':
+                        return connect(
+                            task.addressType, task.address, task.port,
+                            (addressType, address, port) => {
+                                // connect
 
-            return handleRequest(socket);
-        },
-        () => {
-            // auth error
+                                socks5write.writeReply(socket, addressType, address, port);
+                            },
+                            (code) => {
+                                // error
 
-            // method: no acceptable methods
-            socks5write.writeAuth(socket, 0xFF);
+                                socks5write.writeErrorTCP(socket, code);
+                            }
+                        );
+                    case 'bind':
+                        return bind(
+                            task.addressType, task.address, task.port,
+                            (addressType, address, port) => {
+                                // bind
 
-            return handleClose(socket);
-        },
-        () => {
-            // parse error
+                                socks5write.writeReply(socket, addressType, address, port);
+                            },
+                            (addressType, address, port) => {
+                                // connect
 
-            return handleClose(socket);
-        }
-    );
-};
+                                socks5write.writeReply(socket, addressType, address, port);
+                            },
+                            (code) => {
+                                // error
 
-const handleRequest = (socket) => {
-    return socks5parse.parseRequest(
-        socket,
-        (task) => {
-            // next
+                                socks5write.writeErrorTCP(socket, code);
+                            }
+                        );
+                    case 'udpassociate':
+                        return udpAssociate(
+                            task.addressType, task.address, task.port,
+                            (addressType, address, port) => {
+                                // udp associate
 
-            console.error(task);
+                                socks5write.writeReply(socket, addressType, address, port);
+                            },
+                            (code) => {
+                                // error
 
-            return [];
-        },
-        () => {
-            // command error
+                                socks5write.writeErrorTCP(socket, code);
+                            }
+                        );
+                    default:
+                        // never reach
+                        throw Error();
+                }
+            },
+            () => {
+                // command error
 
-            // reply: command not supported
-            socks5write.writeError(socket, 0x07);
+                // reply: command not supported
+                socks5write.writeError(socket, 0x07);
 
-            return handleClose(socket);
-        },
-        () => {
-            // address error
+                return handleClose(socket);
+            },
+            () => {
+                // address error
 
-            // reply: address type not supported
-            socks5write.writeError(socket, 0x08);
+                // reply: address type not supported
+                socks5write.writeError(socket, 0x08);
 
-            return handleClose(socket);
-        },
-        () => {
-            // parse error
+                return handleClose(socket);
+            },
+            () => {
+                // parse error
 
-            return handleClose(socket);
-        }
-    );
-};
+                return handleClose(socket);
+            }
+        );
+    };
 
-const accept = (socket) => {
+    const handleAuth = () => {
+        return socks5parse.parseAuth(
+            socket,
+            () => {
+                // next
+
+                // method: no authentication required
+                socks5write.writeAuth(socket, 0x00);
+
+                return handleRequest(socket);
+            },
+            () => {
+                // auth error
+
+                // method: no acceptable methods
+                socks5write.writeAuth(socket, 0xFF);
+
+                return handleClose(socket);
+            },
+            () => {
+                // parse error
+
+                return handleClose(socket);
+            }
+        );
+    };
+
     const handler = handleAuth(socket);
 
     handler.next();

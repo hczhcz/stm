@@ -75,8 +75,29 @@ const writeError = (socket, reply) => {
     ]));
 };
 
+const writeErrorTCP = (socket, code) => {
+    switch (code) {
+        case 'ENETUNREACH':
+            // reply: network unreachable
+            writeError(socket, 0x03);
+            break;
+        case 'EHOSTUNREACH':
+            // reply: host unreachable
+            writeError(socket, 0x04);
+            break;
+        case 'ECONNREFUSED':
+            // reply: connection refused
+            writeError(socket, 0x05);
+            break;
+        default:
+            // reply: general socks server failure
+            writeError(socket, 0x01);
+    }
+};
+
 module.exports = {
     writeAuth: writeAuth,
     writeReply: writeReply,
     writeError: writeError,
+    writeErrorTCP: writeErrorTCP,
 };
