@@ -1,5 +1,6 @@
 'use strict';
 
+const socks5address = require('./socks5.address');
 const socks5parse = require('./socks5.parse');
 const socks5write = require('./socks5.write');
 
@@ -21,11 +22,11 @@ const accept = (socket, connect, bind, udpAssociate) => {
                 switch (task.command) {
                     case 'connect':
                         return connect(
-                            task.addressType, task.address, task.port,
-                            (addressType, address, port) => {
+                            socks5address.stringify(task),
+                            (address) => {
                                 // connect
 
-                                socks5write.writeReply(socket, addressType, address, port);
+                                socks5write.writeReply(socket, socks5address.parse(address));
                             },
                             (code) => {
                                 // error
@@ -35,16 +36,16 @@ const accept = (socket, connect, bind, udpAssociate) => {
                         );
                     case 'bind':
                         return bind(
-                            task.addressType, task.address, task.port,
-                            (addressType, address, port) => {
+                            socks5address.stringify(task),
+                            (address) => {
                                 // bind
 
-                                socks5write.writeReply(socket, addressType, address, port);
+                                socks5write.writeReply(socket, socks5address.parse(address));
                             },
-                            (addressType, address, port) => {
+                            (address) => {
                                 // connect
 
-                                socks5write.writeReply(socket, addressType, address, port);
+                                socks5write.writeReply(socket, socks5address.parse(address));
                             },
                             (code) => {
                                 // error
@@ -54,11 +55,11 @@ const accept = (socket, connect, bind, udpAssociate) => {
                         );
                     case 'udpassociate':
                         return udpAssociate(
-                            task.addressType, task.address, task.port,
-                            (addressType, address, port) => {
+                            socks5address.stringify(task),
+                            (address) => {
                                 // udp associate
 
-                                socks5write.writeReply(socket, addressType, address, port);
+                                socks5write.writeReply(socket, socks5address.parse(address));
                             },
                             (code) => {
                                 // error

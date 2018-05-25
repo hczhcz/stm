@@ -8,13 +8,13 @@ const createLocal = () => {
     return new net.Server((socket) => {
         const handler = socks5.accept(
             socket,
-            (addressType, address, port, connect, error) => {
+            (address, connect, error) => {
                 // connect
             },
-            (addressType, address, port, bind, connect, error) => {
+            (address, bind, connect, error) => {
                 // bind
             },
-            (addressType, address, port, udpAssociate, error) => {
+            (address, udpAssociate, error) => {
                 // udp associate
             }
         );

@@ -10,7 +10,7 @@ const writeAuth = (socket, method) => {
     ]));
 };
 
-const writeReply = (socket, addressType, address, port) => {
+const writeReply = (socket, task) => {
     // version: 5
     // reply: succeeded
     // reserved
@@ -23,7 +23,7 @@ const writeReply = (socket, addressType, address, port) => {
 
     // address type
 
-    switch (addressType) {
+    switch (task.addressType) {
         case 'ipv4':
             socket.write(Buffer.from([
                 0x01,
@@ -33,7 +33,7 @@ const writeReply = (socket, addressType, address, port) => {
         case 'domainname':
             socket.write(Buffer.from([
                 0x03,
-                address.length,
+                task.address.length,
             ]));
 
             break;
@@ -48,12 +48,14 @@ const writeReply = (socket, addressType, address, port) => {
             throw Error();
     }
 
-    socket.write(address);
+    // address
+
+    socket.write(task.address);
 
     // port
 
     socket.write([
-        port >>> 8, port & 0xff,
+        task.port >>> 8, task.port & 0xff,
     ]);
 };
 
