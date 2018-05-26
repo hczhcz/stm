@@ -8,18 +8,7 @@ const createLocal = () => {
     return new net.Server({
         allowHalfOpen: true,
     }).on('connection', (socket) => {
-        socks5.accept(
-            socket,
-            (address, connect, error) => {
-                // connect
-            },
-            (address, bind, connect, error) => {
-                // bind
-            },
-            (address, udpAssociate, error) => {
-                // udp associate
-            }
-        );
+        socks5.accept(socket);
 
         socket.on('error', (err) => {
             console.error('request error');

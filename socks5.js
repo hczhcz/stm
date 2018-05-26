@@ -4,7 +4,7 @@ const socks5address = require('./socks5.address');
 const socks5parse = require('./socks5.parse');
 const socks5write = require('./socks5.write');
 
-const accept = (socket, connect, bind, udpAssociate) => {
+const accept = (socket) => {
     let parseDone = false;
 
     const handleClose = () => {
@@ -30,54 +30,66 @@ const accept = (socket, connect, bind, udpAssociate) => {
             (task) => {
                 // next
 
+                socket.emit('socks5client.step', 'request');
+
+                const waitAddress = (next) => {
+                    return (address, code) => {
+                        if (code) {
+                            socks5write.writeErrorTCP(socket, code);
+                            socket.end();
+                        } else {
+                            socks5write.writeReply(socket, socks5address.parse(address));
+                            next();
+                        }
+                    };
+                };
+
+                const establish = () => {
+                    socket.on('data', (chunk) => {
+                        socket.emit('socks5client.data', chunk);
+                    }).on('end', () => {
+                        socket.emit('socks5client.end');
+                    }).on('close', () => {
+                        socket.emit('socks5client.close');
+                    }).on('socks5server.data', (chunk) => {
+                        socket.write(chunk);
+                    }).on('socks5server.end', () => {
+                        socket.end();
+                    }).on('socks5server.close', () => {
+                        // socket.end()?
+                        socket.destroy();
+                    });
+
+                    socket.resume();
+                };
+
                 switch (task.command) {
                     case 'connect':
-                        return connect(
-                            socks5address.stringify(task),
-                            (address) => {
-                                // connect
+                        socket.once('socks5server.open', waitAddress(() => {
+                            socket.emit('socks5client.step', 'connect');
 
-                                socks5write.writeReply(socket, socks5address.parse(address));
-                            },
-                            (code) => {
-                                // error
+                            establish();
+                        })).emit('socks5client.connect', socks5address.stringify(task));
 
-                                socks5write.writeErrorTCP(socket, code);
-                            }
-                        );
+                        break;
                     case 'bind':
-                        return bind(
-                            socks5address.stringify(task),
-                            (address) => {
-                                // bind
+                        socket.once('socks5server.open', waitAddress(() => {
+                            socket.once('socks5server.connection', waitAddress(() => {
+                                socket.emit('socks5client.step', 'bind');
 
-                                socks5write.writeReply(socket, socks5address.parse(address));
-                            },
-                            (address) => {
-                                // connect
+                                establish();
+                            }));
+                        })).emit('socks5client.bind', socks5address.stringify(task));
 
-                                socks5write.writeReply(socket, socks5address.parse(address));
-                            },
-                            (code) => {
-                                // error
-
-                                socks5write.writeErrorTCP(socket, code);
-                            }
-                        );
+                        break;
                     case 'udpassociate':
-                        return udpAssociate(
-                            socks5address.stringify(task),
-                            (address) => {
-                                // udp associate
+                        socket.once('socks5server.open', waitAddress(() => {
+                            socket.emit('socks5client.step', 'udpassociate');
 
-                                socks5write.writeReply(socket, socks5address.parse(address));
-                            },
-                            (code) => {
-                                // error
+                            establish();
+                        })).emit('socks5client.udpassociate', socks5address.stringify(task));
 
-                                socks5write.writeErrorTCP(socket, code);
-                            }
-                        );
+                        break;
                     default:
                         // never reach
                         throw Error();
@@ -88,6 +100,8 @@ const accept = (socket, connect, bind, udpAssociate) => {
             () => {
                 // command error
 
+                socket.emit('socks5client.error', 'command');
+
                 // reply: command not supported
                 socks5write.writeError(socket, 0x07);
 
@@ -96,6 +110,8 @@ const accept = (socket, connect, bind, udpAssociate) => {
             () => {
                 // address error
 
+                socket.emit('socks5client.error', 'address');
+
                 // reply: address type not supported
                 socks5write.writeError(socket, 0x08);
 
@@ -103,6 +119,8 @@ const accept = (socket, connect, bind, udpAssociate) => {
             },
             () => {
                 // parse error
+
+                socket.emit('socks5client.error', 'parse');
 
                 return handleClose(socket);
             }
@@ -115,6 +133,8 @@ const accept = (socket, connect, bind, udpAssociate) => {
             () => {
                 // next
 
+                socket.emit('socks5client.step', 'auth');
+
                 // method: no authentication required
                 socks5write.writeAuth(socket, 0x00);
 
@@ -123,6 +143,8 @@ const accept = (socket, connect, bind, udpAssociate) => {
             () => {
                 // auth error
 
+                socket.emit('socks5client.error', 'auth');
+
                 // method: no acceptable methods
                 socks5write.writeAuth(socket, 0xFF);
 
@@ -130,6 +152,8 @@ const accept = (socket, connect, bind, udpAssociate) => {
             },
             () => {
                 // parse error
+
+                socket.emit('socks5client.error', 'parse');
 
                 return handleClose(socket);
             }
