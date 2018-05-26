@@ -5,8 +5,19 @@ const socks5parse = require('./socks5.parse');
 const socks5write = require('./socks5.write');
 
 const accept = (socket, connect, bind, udpAssociate) => {
+    let parseDone = false;
+
     const handleClose = () => {
         socket.end();
+
+        return function *() {
+            // nothing
+        };
+    };
+
+    const handleDone = () => {
+        socket.pause();
+        parseDone = true;
 
         return function *() {
             // nothing
@@ -71,6 +82,8 @@ const accept = (socket, connect, bind, udpAssociate) => {
                         // never reach
                         throw Error();
                 }
+
+                return handleDone();
             },
             () => {
                 // command error
@@ -127,7 +140,19 @@ const accept = (socket, connect, bind, udpAssociate) => {
 
     handler.next();
 
-    return handler;
+    socket.on('data', (chunk) => {
+        if (!parseDone) {
+            for (let i = 0; i < chunk.length; i += 1) {
+                handler.next(chunk[i]);
+
+                if (parseDone) {
+                    socket.unshift(chunk.slice(i + 1));
+
+                    break;
+                }
+            }
+        }
+    });
 };
 
 module.exports = {
