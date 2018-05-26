@@ -82,14 +82,17 @@ const writeErrorTCP = (socket, code) => {
         case 'ENETUNREACH':
             // reply: network unreachable
             writeError(socket, 0x03);
+
             break;
         case 'EHOSTUNREACH':
             // reply: host unreachable
             writeError(socket, 0x04);
+
             break;
         case 'ECONNREFUSED':
             // reply: connection refused
             writeError(socket, 0x05);
+
             break;
         default:
             // reply: general socks server failure

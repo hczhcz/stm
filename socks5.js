@@ -30,7 +30,7 @@ const accept = (socket) => {
             (task) => {
                 // next
 
-                socket.emit('socks5client.step', 'request');
+                socket.emit('socks5.step', 'request');
 
                 const waitAddress = (next) => {
                     return (address, code) => {
@@ -66,7 +66,7 @@ const accept = (socket) => {
                 switch (task.command) {
                     case 'connect':
                         socket.once('socks5server.open', waitAddress(() => {
-                            socket.emit('socks5client.step', 'connect');
+                            socket.emit('socks5.step', 'connect');
 
                             establish();
                         })).emit('socks5client.connect', socks5address.stringify(task));
@@ -75,7 +75,7 @@ const accept = (socket) => {
                     case 'bind':
                         socket.once('socks5server.open', waitAddress(() => {
                             socket.once('socks5server.connection', waitAddress(() => {
-                                socket.emit('socks5client.step', 'bind');
+                                socket.emit('socks5.step', 'bind');
 
                                 establish();
                             }));
@@ -84,7 +84,7 @@ const accept = (socket) => {
                         break;
                     case 'udpassociate':
                         socket.once('socks5server.open', waitAddress(() => {
-                            socket.emit('socks5client.step', 'udpassociate');
+                            socket.emit('socks5.step', 'udpassociate');
 
                             establish();
                         })).emit('socks5client.udpassociate', socks5address.stringify(task));
@@ -100,7 +100,7 @@ const accept = (socket) => {
             () => {
                 // command error
 
-                socket.emit('socks5client.error', 'command');
+                socket.emit('socks5.error', 'command');
 
                 // reply: command not supported
                 socks5write.writeError(socket, 0x07);
@@ -110,7 +110,7 @@ const accept = (socket) => {
             () => {
                 // address error
 
-                socket.emit('socks5client.error', 'address');
+                socket.emit('socks5.error', 'address');
 
                 // reply: address type not supported
                 socks5write.writeError(socket, 0x08);
@@ -120,7 +120,7 @@ const accept = (socket) => {
             () => {
                 // parse error
 
-                socket.emit('socks5client.error', 'parse');
+                socket.emit('socks5.error', 'parse');
 
                 return handleClose(socket);
             }
@@ -133,7 +133,7 @@ const accept = (socket) => {
             () => {
                 // next
 
-                socket.emit('socks5client.step', 'auth');
+                socket.emit('socks5.step', 'auth');
 
                 // method: no authentication required
                 socks5write.writeAuth(socket, 0x00);
@@ -143,7 +143,7 @@ const accept = (socket) => {
             () => {
                 // auth error
 
-                socket.emit('socks5client.error', 'auth');
+                socket.emit('socks5.error', 'auth');
 
                 // method: no acceptable methods
                 socks5write.writeAuth(socket, 0xFF);
@@ -153,7 +153,7 @@ const accept = (socket) => {
             () => {
                 // parse error
 
-                socket.emit('socks5client.error', 'parse');
+                socket.emit('socks5.error', 'parse');
 
                 return handleClose(socket);
             }
