@@ -24,11 +24,11 @@ const stringify6 = (task) => {
 const stringify = (task) => {
     switch (task.addressType) {
         case 'ipv4':
-            return stringify4(task) + ':' + task.port;
+            return stringify4(task);
         case 'domainname':
-            return task.address.toString() + ':' + task.port;
+            return task.address.toString();
         case 'ipv6':
-            return '[' + stringify6(task) + ']:' + task.port;
+            return stringify6(task);
         default:
             // never reach
             throw Error();
@@ -78,24 +78,16 @@ const parse6 = (address) => {
 const parse = (address) => {
     const task = {};
 
-    const match = address.match(/^(.*):(\d+)$/);
-
-    if (match[1][0] === '[' && match[1][match[1].length - 1] === ']') {
-        match[1] = match[1].slice(1, match[1].length - 1);
-    }
-
-    if (net.isIPv4(match[1])) {
+    if (net.isIPv4(address)) {
         task.addressType = 'ipv4';
-        task.address = parse4(match[1]);
-    } else if (net.isIPv6(match[1])) {
+        task.address = parse4(address);
+    } else if (net.isIPv6(address)) {
         task.addressType = 'ipv6';
-        task.address = parse6(match[1]);
+        task.address = parse6(address);
     } else {
         task.addressType = 'domainname';
-        task.address = Buffer.from(match[1]);
+        task.address = Buffer.from(address);
     }
-
-    task.port = parseInt(match[2], 10);
 
     return task;
 };

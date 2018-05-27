@@ -19,11 +19,11 @@ const createLocal = (proxyClient) => {
         const session = proxyClient.open((data) => {
             switch (data[0]) {
                 case 'open':
-                    socket.emit('socks5server.open', data[1]);
+                    socket.emit('socks5server.open', data[1], data[2]);
 
                     break;
                 case 'connection':
-                    socket.emit('socks5server.connection', data[1]);
+                    socket.emit('socks5server.connection', data[1], data[2]);
 
                     break;
                 case 'data':
@@ -46,18 +46,18 @@ const createLocal = (proxyClient) => {
         socket.on('error', (err) => {
             console.error('request error');
             console.error(err);
-        }).on('socks5client.connect', (address) => {
-            console.log('connect ' + address);
+        }).on('socks5client.connect', (address, port) => {
+            console.log('connect ' + address + ' ' + port);
 
-            proxyClient.send(session, ['connect', address]);
-        }).on('socks5client.bind', (address) => {
-            console.log('bind ' + address);
+            proxyClient.send(session, ['connect', address, port]);
+        }).on('socks5client.bind', (address, port) => {
+            console.log('bind ' + address + ' ' + port);
 
-            proxyClient.send(session, ['bind', address]);
-        }).on('socks5client.udpassociate', (address) => {
-            console.log('udpassociate ' + address);
+            proxyClient.send(session, ['bind', address, port]);
+        }).on('socks5client.udpassociate', (address, port) => {
+            console.log('udpassociate ' + address + ' ' + port);
 
-            proxyClient.send(session, ['udpassociate', address]);
+            proxyClient.send(session, ['udpassociate', address, port]);
         }).on('socks5client.data', (chunk) => {
             proxyClient.send(session, ['data', chunk]);
         }).on('socks5client.end', () => {

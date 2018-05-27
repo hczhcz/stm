@@ -73,7 +73,7 @@ const accept = (socket) => {
                             socket.emit('socks5.step', 'connect');
 
                             establish();
-                        })).emit('socks5client.connect', socks5address.stringify(task));
+                        })).emit('socks5client.connect', socks5address.stringify(task), task.port);
 
                         break;
                     case 'bind':
@@ -83,7 +83,7 @@ const accept = (socket) => {
 
                                 establish();
                             }));
-                        })).emit('socks5client.bind', socks5address.stringify(task));
+                        })).emit('socks5client.bind', socks5address.stringify(task), task.port);
 
                         break;
                     case 'udpassociate':
@@ -91,7 +91,7 @@ const accept = (socket) => {
                             socket.emit('socks5.step', 'udpassociate');
 
                             establish();
-                        })).emit('socks5client.udpassociate', socks5address.stringify(task));
+                        })).emit('socks5client.udpassociate', socks5address.stringify(task), task.port);
 
                         break;
                     default:
