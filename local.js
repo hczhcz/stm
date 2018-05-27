@@ -11,12 +11,12 @@ process.on('uncaughtException', (err) => {
 });
 
 const createLocal = (proxyClient) => {
-    return new net.Server({
+    return net.createServer({
         allowHalfOpen: true,
     }).on('connection', (socket) => {
         socks5.accept(socket);
 
-        let session = proxyClient.session((data) => {
+        const session = proxyClient.open((data) => {
             switch (data[0]) {
                 case 'open':
                     socket.emit('socks5server.open', data[1]);
@@ -39,8 +39,7 @@ const createLocal = (proxyClient) => {
 
                     break;
                 default:
-                    // never reach
-                    throw Error();
+                    // ignore
             }
         });
 

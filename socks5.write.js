@@ -54,9 +54,9 @@ const writeReply = (socket, task) => {
 
     // port
 
-    socket.write([
+    socket.write(Buffer.from([
         task.port >>> 8, task.port & 0xff,
-    ]);
+    ]));
 };
 
 const writeError = (socket, reply) => {

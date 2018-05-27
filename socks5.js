@@ -12,7 +12,7 @@ const accept = (socket) => {
 
         return function *() {
             // nothing
-        };
+        }();
     };
 
     const handleDone = () => {
@@ -21,6 +21,22 @@ const accept = (socket) => {
 
         return function *() {
             // nothing
+        }();
+    };
+
+    const waitAddress = (next) => {
+        return (address, port, code) => {
+            if (code) {
+                socks5write.writeErrorTCP(socket, code);
+                socket.end();
+            } else {
+                const task = socks5address.parse(address);
+
+                task.port = port;
+
+                socks5write.writeReply(socket, task);
+                next();
+            }
         };
     };
 
@@ -31,18 +47,6 @@ const accept = (socket) => {
                 // next
 
                 socket.emit('socks5.step', 'request');
-
-                const waitAddress = (next) => {
-                    return (address, code) => {
-                        if (code) {
-                            socks5write.writeErrorTCP(socket, code);
-                            socket.end();
-                        } else {
-                            socks5write.writeReply(socket, socks5address.parse(address));
-                            next();
-                        }
-                    };
-                };
 
                 const establish = () => {
                     socket.on('data', (chunk) => {
