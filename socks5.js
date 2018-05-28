@@ -7,24 +7,15 @@ const socks5write = require('./socks5.write');
 const accept = (socket) => {
     let parseDone = false;
 
-    const handleClose = () => {
+    const handleClose = function *() {
         socket.end();
-
-        return function *() {
-            // nothing
-        }();
     };
 
-    const handleDone = () => {
+    const handleDone = function *() {
         socket.pause();
-        parseDone = true;
-
-        return function *() {
-            // nothing
-        }();
     };
 
-    const waitAddress = (next) => {
+    const waitAddress = (callback) => {
         return (address, port, code) => {
             if (code) {
                 socks5write.writeErrorTCP(socket, code);
@@ -35,7 +26,8 @@ const accept = (socket) => {
                 task.port = port;
 
                 socks5write.writeReply(socket, task);
-                next();
+
+                callback();
             }
         };
     };
@@ -47,6 +39,8 @@ const accept = (socket) => {
                 // next
 
                 socket.emit('socks5.step', 'request');
+
+                parseDone = true;
 
                 const establish = () => {
                     socket.on('data', (chunk) => {
@@ -109,7 +103,7 @@ const accept = (socket) => {
                 // reply: command not supported
                 socks5write.writeError(socket, 0x07);
 
-                return handleClose(socket);
+                return handleClose();
             },
             () => {
                 // address error
@@ -119,14 +113,14 @@ const accept = (socket) => {
                 // reply: address type not supported
                 socks5write.writeError(socket, 0x08);
 
-                return handleClose(socket);
+                return handleClose();
             },
             () => {
                 // parse error
 
                 socket.emit('socks5.error', 'parse');
 
-                return handleClose(socket);
+                return handleClose();
             }
         );
     };
@@ -142,7 +136,7 @@ const accept = (socket) => {
                 // method: no authentication required
                 socks5write.writeAuth(socket, 0x00);
 
-                return handleRequest(socket);
+                return handleRequest();
             },
             () => {
                 // auth error
@@ -152,19 +146,19 @@ const accept = (socket) => {
                 // method: no acceptable methods
                 socks5write.writeAuth(socket, 0xFF);
 
-                return handleClose(socket);
+                return handleClose();
             },
             () => {
                 // parse error
 
                 socket.emit('socks5.error', 'parse');
 
-                return handleClose(socket);
+                return handleClose();
             }
         );
     };
 
-    const handler = handleAuth(socket);
+    const handler = handleAuth();
 
     handler.next();
 

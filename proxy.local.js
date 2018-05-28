@@ -7,27 +7,30 @@ const create = (callback) => {
     const sessions = {};
 
     callback({
-        open: (handler) => {
+        open: (receive) => {
             const session = crypto.randomBytes(16).toString('hex');
 
             sessions[session] = {
-                handler: handler,
+                time: Date.now(),
+                receive: receive,
             };
 
             return session;
         },
 
         send: (session, data) => {
+            sessions[session].time = Date.now();
+
             switch (data[0]) {
                 case 'connect':
                     sessions[session].socket = net.createConnection(data[2], data[1]).on('connect', () => {
-                        sessions[session].handler(['open', sessions[session].socket.localAddress, sessions[session].socket.localPort]);
+                        sessions[session].receive(['open', sessions[session].socket.localAddress, sessions[session].socket.localPort]);
                     }).on('data', (chunk) => {
-                        sessions[session].handler(['data', chunk]);
+                        sessions[session].receive(['data', chunk]);
                     }).on('end', () => {
-                        sessions[session].handler(['end']);
+                        sessions[session].receive(['end']);
                     }).on('close', () => {
-                        sessions[session].handler(['close']);
+                        sessions[session].receive(['close']);
 
                         if (!sessions[session].socket.destroyed) {
                             sessions[session].socket.destroy();
