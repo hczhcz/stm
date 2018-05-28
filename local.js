@@ -64,7 +64,6 @@ const createLocal = (proxyClient) => {
             proxyClient.send(session, ['end']);
         }).on('socks5client.close', () => {
             proxyClient.send(session, ['close']);
-            proxyClient.close(session);
         }).on('socks5.step', (step) => {
             console.error('socks5 step ' + step);
         }).on('socks5.error', (step) => {

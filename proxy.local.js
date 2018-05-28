@@ -28,7 +28,12 @@ const create = (callback) => {
                         sessions[session].handler(['end']);
                     }).on('close', () => {
                         sessions[session].handler(['close']);
-                        // TODO: delete session and prevent leak?
+
+                        if (!sessions[session].socket.destroyed) {
+                            sessions[session].socket.destroy();
+                        }
+
+                        delete sessions[session];
                     });
 
                     break;
@@ -56,14 +61,6 @@ const create = (callback) => {
                 default:
                     // ignore
             }
-        },
-
-        close: (session) => {
-            if (sessions[session].socket && !sessions[session].socket.destroyed) {
-                sessions[session].socket.destroy();
-            }
-
-            delete sessions[session];
         },
     });
 };
