@@ -6,6 +6,7 @@ const dgram = require('dgram');
 const create = (callback) => {
     callback((reply, callback2) => {
         let socket = null;
+        let tcpServer = null;
         let udpServer = null;
         let connected = false;
 
@@ -30,7 +31,27 @@ const create = (callback) => {
 
                     break;
                 case 'bind':
-                    //
+                    tcpServer = net.createServer({
+                        allowHalfOpen: true,
+                    }).once('listening', () => {
+                        connected = true;
+
+                        const tcpListen = tcpServer.address();
+
+                        reply(['open', tcpListen.address, tcpListen.port, null]);
+                    }).once('connection', (remoteSocket) => {
+                        socket = remoteSocket;
+
+                        const remote = remoteSocket.address();
+
+                        reply(['connection', remote.address, remote.port, null]);
+                    }).on('error', (err) => {
+                        if (!connected && err.code) {
+                            const tcpListen = tcpServer.address();
+
+                            reply(['open', tcpListen.address, tcpListen.port, err.code]);
+                        }
+                    }).listen();
 
                     break;
                 case 'udpassociate':
@@ -62,6 +83,10 @@ const create = (callback) => {
                 case 'close':
                     if (socket && !socket.destroyed) {
                         socket.destroy();
+                    }
+
+                    if (tcpServer) {
+                        tcpServer.close();
                     }
 
                     if (udpServer) {
