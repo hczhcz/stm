@@ -10,13 +10,13 @@ process.on('uncaughtException', (err) => {
     console.error(err);
 });
 
-const createLocal = (proxyClient) => {
+const createLocal = (proxySession) => {
     return net.createServer({
         allowHalfOpen: true,
     }).on('connection', (socket) => {
-        socks5.accept(socket);
+        socket.pause();
 
-        const session = proxyClient.open((data) => {
+        proxySession((data) => {
             switch (data[0]) {
                 case 'open':
                     socket.emit('socks5server.open', data[1], data[2]);
@@ -41,33 +41,43 @@ const createLocal = (proxyClient) => {
                 default:
                     // ignore
             }
-        });
+        }, (send) => {
+            socks5.accept(socket);
 
-        socket.on('error', (err) => {
-            console.error('request error');
-            console.error(err);
-        }).on('socks5client.connect', (address, port) => {
-            console.log('connect ' + address + ' ' + port);
+            socket.on('error', (err) => {
+                console.error('request error');
+                console.error(err);
+            }).on('socks5client.connect', (address, port) => {
+                console.log('connect ' + address + ' ' + port);
 
-            proxyClient.send(session, ['connect', address, port]);
-        }).on('socks5client.bind', (address, port) => {
-            console.log('bind ' + address + ' ' + port);
+                send(['connect', address, port]);
+            }).on('socks5client.bind', (address, port) => {
+                console.log('bind ' + address + ' ' + port);
 
-            proxyClient.send(session, ['bind', address, port]);
-        }).on('socks5client.udpassociate', (address, port) => {
-            console.log('udpassociate ' + address + ' ' + port);
+                send(['bind', address, port]);
+            }).on('socks5client.udpassociate', (address, port) => {
+                console.log('udpassociate ' + address + ' ' + port);
 
-            proxyClient.send(session, ['udpassociate', address, port]);
-        }).on('socks5client.data', (chunk) => {
-            proxyClient.send(session, ['data', chunk]);
-        }).on('socks5client.end', () => {
-            proxyClient.send(session, ['end']);
-        }).on('socks5client.close', () => {
-            proxyClient.send(session, ['close']);
-        }).on('socks5.step', (step) => {
-            console.error('socks5 step ' + step);
-        }).on('socks5.error', (step) => {
-            console.error('socks5 error ' + step);
+                send(['udpassociate', address, port]);
+
+                // socket.emit('socks5server.open', );
+            }).on('socks5client.data', (chunk) => {
+                send(['data', chunk]);
+            }).on('socks5client.end', () => {
+                console.error('end');
+
+                send(['end']);
+            }).on('socks5client.close', () => {
+                console.error('close');
+
+                send(['close']);
+            }).on('socks5.step', (step) => {
+                console.error('socks5 step ' + step);
+            }).on('socks5.error', (step) => {
+                console.error('socks5 error ' + step);
+            });
+
+            socket.resume();
         });
     }).on('error', (err) => {
         console.error('server error');
@@ -75,7 +85,8 @@ const createLocal = (proxyClient) => {
     });
 };
 
-proxy.create((proxyClient) => {
-    // TODO
-    createLocal(proxyClient).listen(2333);
+// TODO
+proxy.create((proxySession) => {
+
+    createLocal(proxySession, udpSocket).listen(2333);
 });

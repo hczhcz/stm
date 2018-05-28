@@ -1,42 +1,27 @@
 'use strict';
 
-const crypto = require('crypto');
 const net = require('net');
 
 const create = (callback) => {
-    const sessions = {};
+    callback((reply, callback2) => {
+        let socket = null;
 
-    callback({
-        open: (receive) => {
-            const session = crypto.randomBytes(16).toString('hex');
-
-            sessions[session] = {
-                time: Date.now(),
-                receive: receive,
-            };
-
-            return session;
-        },
-
-        send: (session, data) => {
-            sessions[session].time = Date.now();
-
+        callback2((data) => {
             switch (data[0]) {
                 case 'connect':
-                    sessions[session].socket = net.createConnection(data[2], data[1]).on('connect', () => {
-                        sessions[session].receive(['open', sessions[session].socket.localAddress, sessions[session].socket.localPort]);
+                    socket = net.createConnection(data[2], data[1]).on('connect', () => {
+                        reply(['open', socket.localAddress, socket.localPort]);
                     }).on('data', (chunk) => {
-                        sessions[session].receive(['data', chunk]);
+                        reply(['data', chunk]);
                     }).on('end', () => {
-                        sessions[session].receive(['end']);
+                        reply(['end']);
                     }).on('close', () => {
-                        sessions[session].receive(['close']);
+                        reply(['close']);
 
-                        if (!sessions[session].socket.destroyed) {
-                            sessions[session].socket.destroy();
+                        // TODO: timeout?
+                        if (!socket.destroyed) {
+                            socket.destroy();
                         }
-
-                        delete sessions[session];
                     });
 
                     break;
@@ -49,22 +34,22 @@ const create = (callback) => {
 
                     break;
                 case 'data':
-                    sessions[session].socket.write(data[1]);
+                    socket.write(data[1]);
 
                     break;
                 case 'end':
-                    sessions[session].socket.end();
+                    socket.end();
 
                     break;
                 case 'close':
-                    // sessions[session].socket.end()?
-                    sessions[session].socket.destroy();
+                    // socket.end()?
+                    socket.destroy();
 
                     break;
                 default:
                     // ignore
             }
-        },
+        });
     });
 };
 
