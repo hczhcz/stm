@@ -13,8 +13,6 @@ process.on('uncaughtException', (err) => {
 });
 
 const initLocal = (proxySession, tcpServer, udpServer) => {
-    const udpListen = udpServer.address();
-
     tcpServer.on('connection', (socket) => {
         socket.pause();
 
@@ -37,6 +35,7 @@ const initLocal = (proxySession, tcpServer, udpServer) => {
         // close()
 
         let udp = null;
+        let udpListen = null;
 
         proxySession((data) => {
             switch (data[0]) {
@@ -49,6 +48,7 @@ const initLocal = (proxySession, tcpServer, udpServer) => {
 
                     break;
                 case 'udpassociate':
+                    udpListen = udpServer.address();
                     socket.emit('socks5server.udpassociate', udpListen.address, udpListen.port, data[1]);
 
                     break;

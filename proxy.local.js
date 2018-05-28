@@ -36,20 +36,20 @@ const create = (callback) => {
                     }).once('listening', () => {
                         connected = true;
 
-                        const tcpListen = tcpServer.address();
+                        const address = tcpServer.address();
 
-                        reply(['open', tcpListen.address, tcpListen.port, null]);
+                        reply(['open', address.address, address.port, null]);
                     }).once('connection', (remoteSocket) => {
                         socket = remoteSocket;
 
-                        const remote = remoteSocket.address();
+                        const address = remoteSocket.address();
 
-                        reply(['connection', remote.address, remote.port, null]);
+                        reply(['connection', address.address, address.port, null]);
                     }).on('error', (err) => {
                         if (!connected && err.code) {
-                            const tcpListen = tcpServer.address();
+                            const address = tcpServer.address();
 
-                            reply(['open', tcpListen.address, tcpListen.port, err.code]);
+                            reply(['open', address.address, address.port, err.code]);
                         }
                     }).listen();
 
@@ -59,6 +59,8 @@ const create = (callback) => {
                         type: 'udp4',
                     }).once('listening', () => {
                         connected = true;
+
+                        reply(['udpassociate', null]);
                     }).on('message', (msg, info) => {
                         reply(['message', info.address, info.port, msg]);
                     }).on('error', (err) => {
