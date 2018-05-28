@@ -19,14 +19,17 @@ const createLocal = (proxySession) => {
         proxySession((data) => {
             switch (data[0]) {
                 case 'open':
-                    socket.emit('socks5server.open', data[1], data[2]);
+                    // address, port, code
+                    socket.emit('socks5server.open', data[1], data[2], data[3]);
 
                     break;
                 case 'connection':
-                    socket.emit('socks5server.connection', data[1], data[2]);
+                    // address, port, code
+                    socket.emit('socks5server.connection', data[1], data[2], data[3]);
 
                     break;
                 case 'data':
+                    // chunk
                     socket.emit('socks5server.data', data[1]);
 
                     break;
@@ -47,15 +50,15 @@ const createLocal = (proxySession) => {
             socket.on('error', (err) => {
                 console.error('request error');
                 console.error(err);
-            }).on('socks5client.connect', (address, port) => {
+            }).once('socks5client.connect', (address, port) => {
                 console.log('connect ' + address + ' ' + port);
 
                 send(['connect', address, port]);
-            }).on('socks5client.bind', (address, port) => {
+            }).once('socks5client.bind', (address, port) => {
                 console.log('bind ' + address + ' ' + port);
 
                 send(['bind', address, port]);
-            }).on('socks5client.udpassociate', (address, port) => {
+            }).once('socks5client.udpassociate', (address, port) => {
                 console.log('udpassociate ' + address + ' ' + port);
 
                 send(['udpassociate', address, port]);
@@ -63,11 +66,11 @@ const createLocal = (proxySession) => {
                 // socket.emit('socks5server.open', );
             }).on('socks5client.data', (chunk) => {
                 send(['data', chunk]);
-            }).on('socks5client.end', () => {
+            }).once('socks5client.end', () => {
                 console.error('end');
 
                 send(['end']);
-            }).on('socks5client.close', () => {
+            }).once('socks5client.close', () => {
                 console.error('close');
 
                 send(['close']);

@@ -45,15 +45,15 @@ const accept = (socket) => {
                 const establish = () => {
                     socket.on('data', (chunk) => {
                         socket.emit('socks5client.data', chunk);
-                    }).on('end', () => {
+                    }).once('end', () => {
                         socket.emit('socks5client.end');
-                    }).on('close', () => {
+                    }).once('close', () => {
                         socket.emit('socks5client.close');
                     }).on('socks5server.data', (chunk) => {
                         socket.write(chunk);
-                    }).on('socks5server.end', () => {
+                    }).once('socks5server.end', () => {
                         socket.end();
-                    }).on('socks5server.close', () => {
+                    }).once('socks5server.close', () => {
                         // socket.end()?
                         socket.destroy();
                     });
@@ -81,7 +81,7 @@ const accept = (socket) => {
 
                         break;
                     case 'udpassociate':
-                        socket.once('socks5server.open', waitAddress(() => {
+                        socket.once('socks5server.udpassociate', waitAddress(() => {
                             socket.emit('socks5.step', 'udpassociate');
 
                             establish();
