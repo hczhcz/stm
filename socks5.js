@@ -54,7 +54,6 @@ const accept = (socket) => {
                     }).once('socks5server.end', () => {
                         socket.end();
                     }).once('socks5server.close', () => {
-                        // socket.end()?
                         socket.destroy();
                     });
 

@@ -15,7 +15,7 @@ process.on('uncaughtException', (err) => {
 const initLocal = (proxySession, tcpServer, udpServer) => {
     const udpListen = udpServer.address();
 
-    tcpServer.once('connection', (socket) => {
+    tcpServer.on('connection', (socket) => {
         socket.pause();
 
         // send:
