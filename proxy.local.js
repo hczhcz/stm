@@ -1,10 +1,12 @@
 'use strict';
 
 const net = require('net');
+const dgram = require('dgram');
 
 const create = (callback) => {
     callback((reply, callback2) => {
         let socket = null;
+        let udpServer = null;
         let connected = false;
 
         callback2((data) => {
@@ -20,11 +22,6 @@ const create = (callback) => {
                         reply(['end']);
                     }).once('close', () => {
                         reply(['close']);
-
-                        // TODO: timeout?
-                        if (!socket.destroyed) {
-                            socket.destroy();
-                        }
                     }).on('error', (err) => {
                         if (!connected && err.code) {
                             reply(['open', socket.localAddress, socket.localPort, err.code]);
@@ -37,11 +34,21 @@ const create = (callback) => {
 
                     break;
                 case 'udpassociate':
-                    //
+                    udpServer = dgram.createSocket({
+                        type: 'udp4',
+                    }).once('listening', () => {
+                        connected = true;
+                    }).on('message', (msg, info) => {
+                        reply(['message', info.address, info.port, msg]);
+                    }).on('error', (err) => {
+                        if (!connected && err.code) {
+                            reply(['udpassociate', err.code]);
+                        }
+                    }).bind();
 
                     break;
                 case 'message':
-                    //
+                    udpServer.send(data[3], data[2], data[1]);
 
                     break;
                 case 'data':
@@ -53,8 +60,13 @@ const create = (callback) => {
 
                     break;
                 case 'close':
-                    // socket.end()?
-                    socket.destroy();
+                    if (socket && !socket.destroyed) {
+                        socket.destroy();
+                    }
+
+                    if (udpServer) {
+                        udpServer.close();
+                    }
 
                     break;
                 default:
