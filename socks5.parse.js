@@ -61,7 +61,11 @@ const parseRequest = function *(socket, next, commandError, addressError, parseE
 
     // reserved
 
-    yield;
+    if ((yield) !== 0x00) {
+        yield *parseError();
+
+        return;
+    }
 
     // address type
 
@@ -97,7 +101,62 @@ const parseRequest = function *(socket, next, commandError, addressError, parseE
 
     task.port = ((yield) << 8) + (yield);
 
-    // TODO: reply?
+    yield *next(task);
+};
+
+const parseUdp = function *(socket, next, fragmentError, addressError, parseError) {
+    // reserved
+
+    if ((yield) !== 0x00 || (yield) !== 0x00) {
+        yield *parseError();
+
+        return;
+    }
+
+    const task = {};
+
+    // fragment
+
+    if ((yield) !== 0x00) {
+        // not supported
+        yield *fragmentError();
+
+        return;
+    }
+
+    // address type
+
+    switch (yield) {
+        case 0x01:
+            task.addressType = 'ipv4';
+            task.address = Buffer.alloc(4);
+
+            break;
+        case 0x03:
+            task.addressType = 'domainname';
+            task.address = Buffer.alloc(yield);
+
+            break;
+        case 0x04:
+            task.addressType = 'ipv6';
+            task.address = Buffer.alloc(16);
+
+            break;
+        default:
+            yield *addressError();
+
+            return;
+    }
+
+    // address
+
+    for (let i = 0; i < task.address.length; i += 1) {
+        task.address[i] = yield;
+    }
+
+    // port
+
+    task.port = ((yield) << 8) + (yield);
 
     yield *next(task);
 };
@@ -105,4 +164,5 @@ const parseRequest = function *(socket, next, commandError, addressError, parseE
 module.exports = {
     parseAuth: parseAuth,
     parseRequest: parseRequest,
+    parseUdp: parseUdp,
 };
