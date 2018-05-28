@@ -1,6 +1,7 @@
 'use strict';
 
 const net = require('net');
+const dgram = require('dgram');
 
 const socks5 = require('./socks5');
 const proxy = require('./proxy.local');
@@ -10,10 +11,20 @@ process.on('uncaughtException', (err) => {
     console.error(err);
 });
 
-const createLocal = (proxySession) => {
-    return net.createServer({
+const createTcp = (port, callback) => {
+    callback(net.createServer({
         allowHalfOpen: true,
-    }).on('connection', (socket) => {
+    }).listen(port));
+};
+
+const createUdp = (port, callback) => {
+    callback(dgram.createSocket({
+        type: 'udp4',
+    }).bind(port));
+};
+
+const init = (proxySession, tcpServer, udpServer) => {
+    tcpServer.once('connection', (socket) => {
         socket.pause();
 
         proxySession((data) => {
@@ -26,6 +37,11 @@ const createLocal = (proxySession) => {
                 case 'connection':
                     // address, port, code
                     socket.emit('socks5server.connection', data[1], data[2], data[3]);
+
+                    break;
+                case 'message':
+                    // address, port, msg
+                    udpServer.emit('socks5server.message', data[1], data[2], data[3]);
 
                     break;
                 case 'data':
@@ -61,9 +77,11 @@ const createLocal = (proxySession) => {
             }).once('socks5client.udpassociate', (address, port) => {
                 console.log('udpassociate ' + address + ' ' + port);
 
-                send(['udpassociate', address, port]);
+                send(['udpassociate']);
 
-                // socket.emit('socks5server.open', );
+                const udpAddress = udpServer.address();
+
+                socket.emit('socks5server.udpassociate', udpAddress.address, udpAddress.port, null);
             }).on('socks5client.data', (chunk) => {
                 send(['data', chunk]);
             }).once('socks5client.end', () => {
@@ -83,13 +101,23 @@ const createLocal = (proxySession) => {
             socket.resume();
         });
     }).on('error', (err) => {
-        console.error('server error');
+        console.error('tcp server error');
+        console.error(err);
+    });
+
+    udpServer.on('message', (msg, info) => {
+        socks5.udp();
+    }).on('error', (err) => {
+        console.error('udp server error');
         console.error(err);
     });
 };
 
 // TODO
 proxy.create((proxySession) => {
-
-    createLocal(proxySession, udpSocket).listen(2333);
+    createTcp((tcpServer) => {
+        createUdp((udpServer) => {
+            init(proxySession, tcpServer, udpServer);
+        });
+    });
 });
