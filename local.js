@@ -27,25 +27,38 @@ const init = (proxySession, tcpServer, udpServer) => {
     tcpServer.once('connection', (socket) => {
         socket.pause();
 
+        // send:
+        // connect(address, port)
+        // bind(address, port)
+        // udpassociate()
+        // message(address, port, msg)
+        // data(chunk)
+        // end()
+        // close()
+
+        // reply:
+        // open(address, port, code)
+        // connection(address, port, code)
+        // message(address, port, msg)
+        // data(chunk)
+        // end()
+        // close()
+
         proxySession((data) => {
             switch (data[0]) {
                 case 'open':
-                    // address, port, code
                     socket.emit('socks5server.open', data[1], data[2], data[3]);
 
                     break;
                 case 'connection':
-                    // address, port, code
                     socket.emit('socks5server.connection', data[1], data[2], data[3]);
 
                     break;
                 case 'message':
-                    // address, port, msg
                     udpServer.emit('socks5server.message', data[1], data[2], data[3]);
 
                     break;
                 case 'data':
-                    // chunk
                     socket.emit('socks5server.data', data[1]);
 
                     break;

@@ -40,6 +40,10 @@ const create = (callback) => {
                     //
 
                     break;
+                case 'message':
+                    //
+
+                    break;
                 case 'data':
                     socket.write(data[1]);
 
