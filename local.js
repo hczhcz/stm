@@ -8,5 +8,4 @@ process.on('uncaughtException', (err) => {
     console.error(err);
 });
 
-passLocal.pipe(passProxy.open);
-passProxy.pipe(passLocal.open);
+passLocal.pipe(passProxy).pipe(passLocal);

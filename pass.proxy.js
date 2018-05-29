@@ -8,7 +8,9 @@ module.exports = () => {
 
     return {
         pipe: (next) => {
-            backward = next;
+            backward = next.open;
+
+            return next;
         },
 
         open: (id, callback) => {

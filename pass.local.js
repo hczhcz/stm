@@ -46,7 +46,7 @@ module.exports = (tcpPort, udpPort) => {
 
                 sockets[id] = socket;
 
-                next(id, (send, close) => {
+                next.open(id, (send, close) => {
                     socks5.accept(socket);
 
                     socket.on('error', (err) => {
@@ -109,6 +109,8 @@ module.exports = (tcpPort, udpPort) => {
             }).on('socks5.error', (step) => {
                 console.error('socks5 udp error ' + step);
             });
+
+            return next;
         },
 
         open: (id, callback) => {
