@@ -3,18 +3,24 @@
 const net = require('net');
 const dgram = require('dgram');
 
+const serialize = require('./serialize');
+
 module.exports = () => {
     let backward = null;
 
     return {
-        pipe: (next) => {
-            backward = next.open;
+        pipe: (piped) => {
+            backward = piped.open;
 
-            return next;
+            return piped;
         },
 
         open: (id, callback) => {
             backward(id, (send, close) => {
+                const sendJson = (json, chunk) => {
+                    send(serialize.create(json, chunk));
+                };
+
                 let socket = null;
                 let tcpServer = null;
                 let udpServer = null;
@@ -23,21 +29,23 @@ module.exports = () => {
                 callback((data) => {
                     // send
 
-                    switch (data[0]) {
+                    const json = serialize.getJson(data);
+
+                    switch (json[0]) {
                         case 'connect':
-                            socket = net.createConnection(data[2], data[1]).once('connect', () => {
+                            socket = net.createConnection(json[2], json[1]).once('connect', () => {
                                 connected = true;
 
-                                send(['open', socket.localAddress, socket.localPort, null]);
+                                sendJson(['open', socket.localAddress, socket.localPort, null], null);
                             }).on('data', (chunk) => {
-                                send(['data', chunk]);
+                                sendJson(['data'], chunk);
                             }).once('end', () => {
-                                send(['end']);
+                                sendJson(['end'], null);
                             }).once('close', () => {
                                 close();
                             }).on('error', (err) => {
                                 if (!connected && err.code) {
-                                    send(['open', socket.localAddress, socket.localPort, err.code]);
+                                    sendJson(['open', socket.localAddress, socket.localPort, err.code], null);
                                 }
                             });
 
@@ -50,18 +58,18 @@ module.exports = () => {
 
                                 const address = tcpServer.address();
 
-                                send(['open', address.address, address.port, null]);
+                                sendJson(['open', address.address, address.port, null], null);
                             }).once('connection', (remoteSocket) => {
                                 socket = remoteSocket;
 
                                 const address = remoteSocket.address();
 
-                                send(['connection', address.address, address.port, null]);
+                                sendJson(['connection', address.address, address.port, null], null);
                             }).on('error', (err) => {
                                 if (!connected && err.code) {
                                     const address = tcpServer.address();
 
-                                    send(['open', address.address, address.port, err.code]);
+                                    sendJson(['open', address.address, address.port, err.code], null);
                                 }
                             }).listen();
 
@@ -72,22 +80,22 @@ module.exports = () => {
                             }).once('listening', () => {
                                 connected = true;
 
-                                send(['udpassociate', null]);
+                                sendJson(['udpassociate', null], null);
                             }).on('message', (msg, info) => {
-                                send(['message', info.address, info.port, msg]);
+                                sendJson(['message', info.address, info.port], msg);
                             }).on('error', (err) => {
                                 if (!connected && err.code) {
-                                    send(['udpassociate', err.code]);
+                                    sendJson(['udpassociate', err.code], null);
                                 }
                             }).bind();
 
                             break;
                         case 'message':
-                            udpServer.send(data[3], data[2], data[1]);
+                            udpServer.send(serialize.getChunk(data), json[2], json[1]);
 
                             break;
                         case 'data':
-                            socket.write(data[1]);
+                            socket.write(serialize.getChunk(data));
 
                             break;
                         case 'end':

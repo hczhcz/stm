@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const net = require('net');
 const dgram = require('dgram');
 
+const serialize = require('./serialize');
 const socks5 = require('./socks5');
 const socks5udp = require('./socks5.udp');
 
@@ -38,7 +39,7 @@ module.exports = (tcpPort, udpPort) => {
     const udpInfo = {};
 
     return {
-        pipe: (next) => {
+        pipe: (piped) => {
             tcpServer.on('connection', (socket) => {
                 socket.pause();
 
@@ -46,7 +47,11 @@ module.exports = (tcpPort, udpPort) => {
 
                 sockets[id] = socket;
 
-                next.open(id, (send, close) => {
+                piped.open(id, (send, close) => {
+                    const sendJson = (json, chunk) => {
+                        send(serialize.create(json, chunk));
+                    };
+
                     socks5.accept(socket);
 
                     socket.on('error', (err) => {
@@ -55,11 +60,11 @@ module.exports = (tcpPort, udpPort) => {
                     }).once('socks5client.connect', (address, port) => {
                         console.log('connect ' + address + ' ' + port);
 
-                        send(['connect', address, port]);
+                        sendJson(['connect', address, port], null);
                     }).once('socks5client.bind', (address, port) => {
                         console.log('bind ' + address + ' ' + port);
 
-                        send(['bind', address, port]);
+                        sendJson(['bind', address, port], null);
                     }).once('socks5client.udpassociate', (address, port) => {
                         console.log('udpassociate ' + address + ' ' + port);
 
@@ -68,16 +73,16 @@ module.exports = (tcpPort, udpPort) => {
                         udpInfo[id] = {
                             address: address,
                             port: port,
-                            send: send,
+                            sendJson: sendJson,
                         };
 
-                        send(['udpassociate']);
+                        sendJson(['udpassociate'], null);
                     }).on('socks5client.data', (chunk) => {
-                        send(['data', chunk]);
+                        sendJson(['data'], chunk);
                     }).once('socks5client.end', () => {
                         console.error('end');
 
-                        send(['end']);
+                        sendJson(['end'], null);
                     }).once('socks5client.close', () => {
                         console.error('close');
 
@@ -101,7 +106,7 @@ module.exports = (tcpPort, udpPort) => {
             }).on('socks5client.message', (localAddress, localPort, remoteAddress, remotePort, msg) => {
                 for (const i in udpInfo) {
                     if (udpInfo[i].address === localAddress && udpInfo[i].port === localPort) {
-                        udpInfo[i].send(['message', remoteAddress, remotePort, msg]);
+                        udpInfo[i].sendJson(['message', remoteAddress, remotePort], msg);
                     }
                 }
             }).on('socks5.step', (step) => {
@@ -110,35 +115,37 @@ module.exports = (tcpPort, udpPort) => {
                 console.error('socks5 udp error ' + step);
             });
 
-            return next;
+            return piped;
         },
 
         open: (id, callback) => {
             callback((data) => {
                 // send
 
+                const json = serialize.getJson(data);
+
                 let udpListen = null;
 
-                switch (data[0]) {
+                switch (json[0]) {
                     case 'open':
-                        sockets[id].emit('socks5server.open', data[1], data[2], data[3]);
+                        sockets[id].emit('socks5server.open', json[1], json[2], json[3]);
 
                         break;
                     case 'connection':
-                        sockets[id].emit('socks5server.connection', data[1], data[2], data[3]);
+                        sockets[id].emit('socks5server.connection', json[1], json[2], json[3]);
 
                         break;
                     case 'udpassociate':
                         udpListen = udpServer.address();
-                        sockets[id].emit('socks5server.udpassociate', udpListen.address, udpListen.port, data[1]);
+                        sockets[id].emit('socks5server.udpassociate', udpListen.address, udpListen.port, json[1]);
 
                         break;
                     case 'message':
-                        udpServer.emit('socks5server.message', udpInfo[id].address, udpInfo[id].port, data[1], data[2], data[3]);
+                        udpServer.emit('socks5server.message', udpInfo[id].address, udpInfo[id].port, json[1], json[2], serialize.getChunk(data));
 
                         break;
                     case 'data':
-                        sockets[id].emit('socks5server.data', data[1]);
+                        sockets[id].emit('socks5server.data', serialize.getChunk(data));
 
                         break;
                     case 'end':
