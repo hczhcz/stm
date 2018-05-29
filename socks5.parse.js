@@ -104,7 +104,7 @@ const parseRequest = function *(socket, next, commandError, addressError, parseE
     yield *next(task);
 };
 
-const parseUdp = function *(socket, next, fragmentError, addressError, parseError) {
+const parseUDP = function *(socket, next, fragmentError, addressError, parseError) {
     // reserved
 
     if ((yield) !== 0x00 || (yield) !== 0x00) {
@@ -164,5 +164,5 @@ const parseUdp = function *(socket, next, fragmentError, addressError, parseErro
 module.exports = {
     parseAuth: parseAuth,
     parseRequest: parseRequest,
-    parseUdp: parseUdp,
+    parseUDP: parseUDP,
 };

@@ -100,9 +100,59 @@ const writeErrorTCP = (socket, code) => {
     }
 };
 
+const writeUDP = (socket, address, port, task, msg) => {
+    let addressHeader = null;
+
+    switch (task.addressType) {
+        case 'ipv4':
+            addressHeader = Buffer.from([
+                0x01,
+            ]);
+
+            break;
+        case 'domainname':
+            addressHeader = Buffer.from([
+                0x03,
+                task.address.length,
+            ]);
+
+            break;
+        case 'ipv6':
+            addressHeader = Buffer.from([
+                0x04,
+            ]);
+
+            break;
+        default:
+            // never reach
+            throw Error();
+    }
+
+    // reserved
+    // fragment: 0
+    // address type
+    // address
+    // port
+    // data
+
+    socket.send(Buffer.concat([
+        Buffer.from([
+            0x00, 0x00,
+            0x00,
+        ]),
+        addressHeader,
+        task.address,
+        Buffer.from([
+            task.port >>> 8, task.port & 0xff,
+        ]),
+        msg,
+    ]), port, address);
+};
+
 module.exports = {
     writeAuth: writeAuth,
     writeReply: writeReply,
     writeError: writeError,
     writeErrorTCP: writeErrorTCP,
+    writeUDP: writeUDP,
 };

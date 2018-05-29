@@ -2,6 +2,7 @@
 
 const socks5address = require('./socks5.address');
 const socks5parse = require('./socks5.parse');
+const socks5write = require('./socks5.write');
 
 const init = (socket) => {
     socket.socks5sessions = {};
@@ -13,7 +14,7 @@ const init = (socket) => {
         const handleClose = function *() {
         };
 
-        const handler = socks5parse.parseUdp(
+        const handler = socks5parse.parseUDP(
             socket,
             (task) => {
                 // next
@@ -57,7 +58,11 @@ const init = (socket) => {
             }
         }
     }).on('socks5server.message', (localAddress, localPort, remoteAddress, remotePort, msg) => {
-        socket.socks5sessions[localAddress + ':' + localPort](['message', remoteAddress, remotePort, msg]);
+        const task = socks5address.parse(remoteAddress);
+
+        task.port = remotePort;
+
+        socks5write.writeUDP(socket, localAddress, localPort, task, msg);
     });
 };
 
