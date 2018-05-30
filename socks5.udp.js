@@ -5,8 +5,6 @@ const socks5parse = require('./socks5.parse');
 const socks5write = require('./socks5.write');
 
 const init = (socket) => {
-    socket.socks5sessions = {};
-
     socket.on('message', (msg, info) => {
         let parseDone = false;
         let i = 0;

@@ -53,8 +53,7 @@ const parse6 = (address) => {
         } else if (sections[i] !== '') {
             const value = parseInt(sections[i], 16);
 
-            sections[i] = Buffer.alloc(2);
-            sections[i].writeUInt16BE(value);
+            sections[i] = Buffer.from([value >>> 8, value & 0xff]);
             total += 2;
         }
     }
