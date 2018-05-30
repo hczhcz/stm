@@ -1,6 +1,6 @@
 'use strict';
 
-const passLocal = require('./pass.local')(2333, 2333);
+const passSocks5 = require('./pass.socks5')(2333, 2333);
 const passProxy = require('./pass.proxy')();
 
 process.on('uncaughtException', (err) => {
@@ -8,4 +8,5 @@ process.on('uncaughtException', (err) => {
     console.error(err);
 });
 
-passLocal.pipe(passProxy).pipe(passLocal);
+passSocks5.pipe(passProxy);
+passProxy.pipe(passSocks5);
