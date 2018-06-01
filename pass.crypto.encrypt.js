@@ -23,7 +23,7 @@ module.exports = (password) => {
                 }, () => {
                     // close
 
-                    // send(cipher.final());
+                    send(cipher.final());
                     close();
                 });
             });

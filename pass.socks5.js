@@ -43,7 +43,7 @@ module.exports = (tcpPort, udpPort) => {
             tcpServer.on('connection', (socket) => {
                 socket.pause();
 
-                const id = crypto.randomBytes(16).toString('hex');
+                const id = crypto.randomBytes(16);
 
                 sockets[id] = socket;
 

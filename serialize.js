@@ -4,15 +4,13 @@ const create = (json, chunk) => {
     const jsonData = Buffer.from(JSON.stringify(json));
     const chunkData = chunk || Buffer.alloc(0);
 
-    const jsonSize = Buffer.alloc(4);
-    const chunkSize = Buffer.alloc(4);
+    const header = Buffer.alloc(8);
 
-    jsonSize.writeUInt32BE(jsonData.length);
-    chunkSize.writeUInt32BE(chunkData.length);
+    header.writeUInt32BE(jsonData.length, 0);
+    header.writeUInt32BE(chunkData.length, 4);
 
     return Buffer.concat([
-        jsonSize,
-        chunkSize,
+        header,
         jsonData,
         chunkData,
     ]);
