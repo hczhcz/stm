@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const cryptoUtil = require('./crypto.util');
 
 module.exports = (password) => {
@@ -14,7 +15,10 @@ module.exports = (password) => {
 
         open: (callback) => {
             next((send, close) => {
-                const cipher = cryptoUtil.encryptInit(password, 'TODO');
+                const iv = crypto.randomBytes(16);
+                const cipher = cryptoUtil.encryptInit(password, iv);
+
+                send(iv);
 
                 callback((data) => {
                     // send
