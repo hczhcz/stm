@@ -10,8 +10,8 @@ module.exports = () => {
             return piped;
         },
 
-        open: (id, callback) => {
-            next(id, (send, close) => {
+        open: (callback) => {
+            next((send, close) => {
                 const handler = function *() {
                     while (true) {
                         const header = Buffer.alloc(8);

@@ -12,9 +12,9 @@ module.exports = (password) => {
             return piped;
         },
 
-        open: (id, callback) => {
-            next(id, (send, close) => {
-                const cipher = cryptoUtil.encryptInit(password, id);
+        open: (callback) => {
+            next((send, close) => {
+                const cipher = cryptoUtil.encryptInit(password, 'TODO');
 
                 callback((data) => {
                     // send
