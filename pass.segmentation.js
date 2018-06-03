@@ -12,36 +12,22 @@ module.exports = () => {
 
         open: (callback) => {
             next((send, close) => {
-                const handler = function *() {
-                    while (true) {
-                        const header = Buffer.alloc(8);
-
-                        for (let i = 0; i < 8; i += 1) {
-                            header[i] = yield;
-                        }
-
-                        const jsonSize = header.readUInt32BE(0);
-                        const chunkSize = header.readUInt32BE(4);
-
-                        const data = Buffer.alloc(8 + jsonSize + chunkSize);
-
-                        header.copy(data);
-
-                        for (let i = 8; i < 8 + jsonSize + chunkSize; i += 1) {
-                            data[i] = yield;
-                        }
-
-                        send(data);
-                    }
-                }();
-
-                handler.next();
+                let buffer = Buffer.alloc(0);
 
                 callback((data) => {
                     // send
 
-                    for (let i = 0; i < data.length; i += 1) {
-                        handler.next(data[i]);
+                    buffer = Buffer.concat([buffer, data]);
+
+                    if (buffer.length >= 8) {
+                        const jsonSize = buffer.readUInt32BE(0);
+                        const chunkSize = buffer.readUInt32BE(4);
+                        const size = 8 + jsonSize + chunkSize;
+
+                        if (buffer.length >= size) {
+                            send(buffer, size);
+                            buffer = buffer.slice(size);
+                        }
                     }
                 }, () => {
                     // close
