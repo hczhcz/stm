@@ -14,11 +14,7 @@ module.exports = () => {
             next((send, close) => {
                 let buffer = Buffer.alloc(0);
 
-                callback((data) => {
-                    // send
-
-                    buffer = Buffer.concat([buffer, data]);
-
+                const parse = () => {
                     if (buffer.length >= 8) {
                         const jsonSize = buffer.readUInt32BE(0);
                         const chunkSize = buffer.readUInt32BE(4);
@@ -27,8 +23,18 @@ module.exports = () => {
                         if (buffer.length >= size) {
                             send(buffer, size);
                             buffer = buffer.slice(size);
+
+                            parse();
                         }
                     }
+                };
+
+                callback((data) => {
+                    // send
+
+                    buffer = Buffer.concat([buffer, data]);
+
+                    parse();
                 }, () => {
                     // close
 
