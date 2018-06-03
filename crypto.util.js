@@ -13,11 +13,11 @@ const hash256 = (data) => {
 // TODO: prevent replay attack?
 
 const encryptInit = (password, iv) => {
-    return crypto.createCipheriv('aes-256-gcm', hash256(password), iv);
+    return crypto.createCipheriv('aes-256-cfb', hash256(password), iv);
 };
 
 const decryptInit = (password, iv) => {
-    return crypto.createDecipheriv('aes-256-gcm', hash256(password), iv);
+    return crypto.createDecipheriv('aes-256-cfb', hash256(password), iv);
 };
 
 module.exports = {

@@ -161,6 +161,7 @@ module.exports = (tcpPort, udpPort) => {
                 sockets[id].emit('socks5server.close');
 
                 delete sockets[id];
+                delete udpInfo[id];
             });
         },
     };
