@@ -1,6 +1,6 @@
 'use strict';
 
-const passSocks5 = require('./pass.socks5')(2333, 2333);
+const passSocks5 = require('./pass.socks5')(2333);
 const passCryptoEncrypt = require('./pass.crypto.encrypt')('aes-256-cfb', 'fuckGFW');
 const passCryptoDecrypt = require('./pass.crypto.decrypt')('aes-256-cfb', 'fuckGFW');
 const passSegmentation = require('./pass.segmentation')();

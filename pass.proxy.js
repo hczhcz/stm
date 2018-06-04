@@ -82,7 +82,7 @@ module.exports = () => {
                             break;
                         case 'udpassociate':
                             udpServer = dgram.createSocket({
-                                type: 'udp4',
+                                type: 'udp6',
                             }).once('listening', () => {
                                 connected = true;
 
