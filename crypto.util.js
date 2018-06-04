@@ -12,12 +12,12 @@ const hash256 = (data) => {
 
 // TODO: prevent replay attack?
 
-const encryptInit = (password, iv) => {
-    return crypto.createCipheriv('aes-256-cfb', hash256(password), hash256(iv).slice(16));
+const encryptInit = (algorithm, password, iv) => {
+    return crypto.createCipheriv(algorithm, hash256(password), hash256(iv).slice(16));
 };
 
-const decryptInit = (password, iv) => {
-    return crypto.createDecipheriv('aes-256-cfb', hash256(password), hash256(iv).slice(16));
+const decryptInit = (algorithm, password, iv) => {
+    return crypto.createDecipheriv(algorithm, hash256(password), hash256(iv).slice(16));
 };
 
 module.exports = {

@@ -2,7 +2,7 @@
 
 const cryptoUtil = require('./crypto.util');
 
-module.exports = (password) => {
+module.exports = (algorithm, password) => {
     const ivSet = {};
 
     let next = null;
@@ -52,7 +52,7 @@ module.exports = (password) => {
                 const parse = () => {
                     if (buffer.length >= 16) {
                         iv = buffer.slice(0, 16);
-                        decipher = cryptoUtil.decryptInit(password, iv);
+                        decipher = cryptoUtil.decryptInit(algorithm, password, iv);
 
                         buffer = decipher.update(buffer.slice(16));
 
