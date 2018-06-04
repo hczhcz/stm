@@ -1,5 +1,26 @@
 'use strict';
 
+const getAddressHeader = (task) => {
+    switch (task.addressType) {
+        case 'ipv4':
+            return Buffer.from([
+                0x01,
+            ]);
+        case 'domainname':
+            return Buffer.from([
+                0x03,
+                task.address.length,
+            ]);
+        case 'ipv6':
+            return Buffer.from([
+                0x04,
+            ]);
+        default:
+            // never reach
+            throw Error();
+    }
+};
+
 const writeAuth = (socket, method) => {
     // version: 5
     // method
@@ -14,48 +35,21 @@ const writeReply = (socket, task) => {
     // version: 5
     // reply: succeeded
     // reserved
-
-    socket.write(Buffer.from([
-        0x05,
-        0x00,
-        0x00,
-    ]));
-
     // address type
-
-    switch (task.addressType) {
-        case 'ipv4':
-            socket.write(Buffer.from([
-                0x01,
-            ]));
-
-            break;
-        case 'domainname':
-            socket.write(Buffer.from([
-                0x03,
-                task.address.length,
-            ]));
-
-            break;
-        case 'ipv6':
-            socket.write(Buffer.from([
-                0x04,
-            ]));
-
-            break;
-        default:
-            // never reach
-            throw Error();
-    }
-
     // address
-
-    socket.write(task.address);
-
     // port
 
-    socket.write(Buffer.from([
-        task.port >>> 8, task.port & 0xff,
+    socket.write(Buffer.concat([
+        Buffer.from([
+            0x05,
+            0x00,
+            0x00,
+        ]),
+        getAddressHeader(task),
+        task.address,
+        Buffer.from([
+            task.port >>> 8, task.port & 0xff,
+        ]),
     ]));
 };
 
@@ -101,33 +95,6 @@ const writeErrorTCP = (socket, code) => {
 };
 
 const writeUDP = (socket, address, port, task, msg) => {
-    let addressHeader = null;
-
-    switch (task.addressType) {
-        case 'ipv4':
-            addressHeader = Buffer.from([
-                0x01,
-            ]);
-
-            break;
-        case 'domainname':
-            addressHeader = Buffer.from([
-                0x03,
-                task.address.length,
-            ]);
-
-            break;
-        case 'ipv6':
-            addressHeader = Buffer.from([
-                0x04,
-            ]);
-
-            break;
-        default:
-            // never reach
-            throw Error();
-    }
-
     // reserved
     // fragment: 0
     // address type
@@ -140,7 +107,7 @@ const writeUDP = (socket, address, port, task, msg) => {
             0x00, 0x00,
             0x00,
         ]),
-        addressHeader,
+        getAddressHeader(task),
         task.address,
         Buffer.from([
             task.port >>> 8, task.port & 0xff,
