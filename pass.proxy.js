@@ -42,8 +42,6 @@ module.exports = () => {
                                 sendJson(['data'], dataChunk);
                             }).once('end', () => {
                                 sendJson(['end'], null);
-                            }).once('close', () => {
-                                close();
                             }).on('error', (err) => {
                                 if (!connected && err.code) {
                                     sendJson(['open', socket.localAddress, socket.localPort, err.code], chunk);
@@ -68,8 +66,6 @@ module.exports = () => {
                                 }).once('close', () => {
                                     tcpServer.close();
                                     tcpServer = null;
-
-                                    close();
                                 });
 
                                 const address = remoteSocket.address();
@@ -134,6 +130,8 @@ module.exports = () => {
                     if (udpServer) {
                         udpServer.close();
                     }
+
+                    close();
                 });
             });
         },
