@@ -14,7 +14,9 @@ module.exports = () => {
 
         open: (callback) => {
             next((send, close) => {
-                const inflate = zlib.createInflateRaw();
+                const inflate = zlib.createInflateRaw({
+                    flush: zlib.constants.Z_SYNC_FLUSH,
+                });
 
                 inflate.on('data', (chunk) => {
                     send(chunk);
@@ -26,7 +28,6 @@ module.exports = () => {
                     // send
 
                     inflate.write(data);
-                    inflate.flush();
                 }, () => {
                     // close
 
