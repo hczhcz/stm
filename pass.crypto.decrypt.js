@@ -3,7 +3,7 @@
 const cryptoUtil = require('./crypto.util');
 
 module.exports = (algorithm, password) => {
-    const ivSet = {};
+    let ivSet = {};
 
     let next = null;
 
@@ -33,13 +33,19 @@ module.exports = (algorithm, password) => {
                         const ivString = 'iv_' + iv.toString('hex');
                         const now = Math.floor(Date.now() / 1000 / 60);
 
+                        const oldIvSet = ivSet;
+
+                        ivSet = {};
+                        ivSet[now - 1] = oldIvSet[now - 1] || {};
+                        ivSet[now] = oldIvSet[now] || {};
+                        ivSet[now + 1] = oldIvSet[now + 1] || {};
+
                         if (
                             magic === 0xDEADBEEF
-                            && timestamp <= now + 1
-                            && timestamp >= now - 1
-                            && !(ivString in ivSet)
+                            && timestamp in ivSet
+                            && !(ivString in ivSet[timestamp])
                         ) {
-                            ivSet[ivString] = timestamp;
+                            ivSet[timestamp][ivString] = true;
                             verified = true;
 
                             send(buffer);
