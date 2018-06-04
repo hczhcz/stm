@@ -10,8 +10,6 @@ const hash256 = (data) => {
     return hash.digest();
 };
 
-// TODO: prevent replay attack?
-
 const encryptInit = (algorithm, password, iv) => {
     return crypto.createCipheriv(algorithm, hash256(password), hash256(iv).slice(16));
 };

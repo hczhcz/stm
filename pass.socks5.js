@@ -79,15 +79,15 @@ module.exports = (tcpPort, udpPort) => {
                     }).on('socks5client.data', (chunk) => {
                         info[id].sendJson(['data'], chunk);
                     }).once('socks5client.end', () => {
-                        console.error('end');
+                        // console.error('end');
 
                         info[id].sendJson(['end'], null);
                     }).once('socks5client.close', () => {
-                        console.error('close');
+                        // console.error('close');
 
                         close();
                     }).on('socks5.step', (step) => {
-                        console.error('socks5 tcp step ' + step);
+                        // console.error('socks5 tcp step ' + step);
                     }).on('socks5.error', (step) => {
                         console.error('socks5 tcp error ' + step);
                     });
@@ -109,7 +109,7 @@ module.exports = (tcpPort, udpPort) => {
                     }
                 }
             }).on('socks5.step', (step) => {
-                console.error('socks5 udp step ' + step);
+                // console.error('socks5 udp step ' + step);
             }).on('socks5.error', (step) => {
                 console.error('socks5 udp error ' + step);
             });
