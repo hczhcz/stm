@@ -83,7 +83,7 @@ module.exports = (listenPort) => {
                     }).on('socks5client.data', (chunk) => {
                         sendJson(['data'], chunk);
                     }).once('socks5client.end', () => {
-                        console.error(id.slice(0, 4) + ' end');
+                        // console.error(id.slice(0, 4) + ' end');
 
                         if (info[id].udpServer) {
                             info[id].udpServer.close();
@@ -92,7 +92,7 @@ module.exports = (listenPort) => {
 
                         sendJson(['end'], null);
                     }).once('socks5client.close', () => {
-                        console.error(id.slice(0, 4) + ' close');
+                        // console.error(id.slice(0, 4) + ' close');
 
                         close();
                     }).on('socks5.step', (step) => {
@@ -137,8 +137,7 @@ module.exports = (listenPort) => {
                         id = chunk.toString('hex');
 
                         udpListen = info[id].udpServer.address();
-                        // TODO: address?
-                        info[id].socket.emit('socks5server.udpassociate', '::1', udpListen.port, json[1]);
+                        info[id].socket.emit('socks5server.udpassociate', udpListen.address, udpListen.port, json[1]);
 
                         break;
                     case 'message':

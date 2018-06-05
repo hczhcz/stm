@@ -22,6 +22,7 @@ module.exports = (algorithm, password) => {
                 let decipher = null;
 
                 let verified = false;
+                let failed = false;
 
                 const verify = () => {
                     if (buffer.length >= 8) {
@@ -50,6 +51,7 @@ module.exports = (algorithm, password) => {
 
                             send(buffer);
                         } else {
+                            failed = true;
                             close();
                         }
                     }
@@ -83,8 +85,13 @@ module.exports = (algorithm, password) => {
                 }, () => {
                     // close
 
-                    send(decipher.final());
-                    close();
+                    if (verified) {
+                        send(decipher.final());
+                    }
+
+                    if (!failed) {
+                        close();
+                    }
                 });
             });
         },
