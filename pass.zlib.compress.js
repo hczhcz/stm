@@ -12,8 +12,8 @@ module.exports = (level) => {
             return piped;
         },
 
-        open: (callback) => {
-            next((send, close) => {
+        open: (info, callback) => {
+            next(info, (send, close) => {
                 const deflate = zlib.createDeflateRaw({
                     flush: zlib.constants.Z_SYNC_FLUSH,
                     level: level,

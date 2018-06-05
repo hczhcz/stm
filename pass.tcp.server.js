@@ -10,7 +10,7 @@ module.exports = (port) => {
             }).on('connection', (socket) => {
                 socket.pause();
 
-                piped.open((send, close) => {
+                piped.open(info, (send, close) => {
                     socket.on('data', (chunk) => {
                         send(chunk);
                     }).on('end', () => {
@@ -20,7 +20,7 @@ module.exports = (port) => {
             }).listen(port);
         },
 
-        open: (callback) => {
+        open: (info, callback) => {
             callback((data) => {
                 // send
 

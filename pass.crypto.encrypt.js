@@ -13,8 +13,8 @@ module.exports = (algorithm, password) => {
             return piped;
         },
 
-        open: (callback) => {
-            next((send, close) => {
+        open: (info, callback) => {
+            next(info, (send, close) => {
                 const iv = crypto.randomBytes(16);
                 const cipher = cryptoUtil.encryptInit(algorithm, password, iv);
 

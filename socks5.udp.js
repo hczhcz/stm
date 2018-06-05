@@ -5,7 +5,7 @@ const socks5parse = require('./socks5.parse');
 const socks5write = require('./socks5.write');
 
 const init = (socket) => {
-    socket.on('message', (msg, info) => {
+    socket.on('message', (msg, address) => {
         let parseDone = false;
         let i = 0;
 
@@ -21,7 +21,7 @@ const init = (socket) => {
 
                 parseDone = true;
 
-                socket.emit('socks5client.message', info.address, info.port, socks5address.stringify(task), task.port, msg.slice(i + 1));
+                socket.emit('socks5client.message', address.address, address.port, socks5address.stringify(task), task.port, msg.slice(i + 1));
 
                 return handleClose();
             },

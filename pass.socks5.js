@@ -9,17 +9,17 @@ const socks5 = require('./socks5');
 const socks5udp = require('./socks5.udp');
 
 // send:
-// connect(address, port) + id
-// bind(address, port) + id
-// udpassociate() + id
+// connect(address, port)
+// bind(address, port)
+// udpassociate()
 // message(address, port) + msg
 // data() + chunk
 // end()
 
 // reply:
-// open(address, port, code) + id
+// open(address, port, code)
 // connection(address, port, code)
-// udpassociate(code) + id
+// udpassociate(code)
 // message(address, port) + msg
 // data() + chunk
 // end()
@@ -29,21 +29,17 @@ module.exports = (listenPort) => {
         allowHalfOpen: true,
     }).listen(listenPort);
 
-    const info = {};
-
     return {
         pipe: (piped) => {
             tcpServer.on('connection', (socket) => {
                 socket.pause();
 
-                const rawId = crypto.randomBytes(16);
-                const id = rawId.toString('hex');
-
-                info[id] = {
+                const id = crypto.randomBytes(2).toString('hex');
+                const info = {
                     socket: socket,
                 };
 
-                piped.open((send, close) => {
+                piped.open(info, (send, close) => {
                     const sendJson = (json, chunk) => {
                         send(serialize.create(json, chunk));
                     };
@@ -51,54 +47,56 @@ module.exports = (listenPort) => {
                     socks5.accept(socket);
 
                     socket.on('error', (err) => {
-                        console.error(id.slice(0, 4) + ' request error');
+                        console.error(id + ' request error');
                         console.error(err);
                     }).once('socks5client.connect', (address, port) => {
-                        console.log(id.slice(0, 4) + ' connect ' + address + ' ' + port);
+                        console.log(id + ' connect ' + address + ' ' + port);
 
-                        sendJson(['connect', address, port], rawId);
+                        sendJson(['connect', address, port], null);
                     }).once('socks5client.bind', (address, port) => {
-                        console.log(id.slice(0, 4) + ' bind ' + address + ' ' + port);
+                        console.log(id + ' bind ' + address + ' ' + port);
 
-                        sendJson(['bind', address, port], rawId);
+                        sendJson(['bind', address, port], null);
                     }).once('socks5client.udpassociate', (address, port) => {
-                        console.log(id.slice(0, 4) + ' udpassociate ' + address + ' ' + port);
+                        console.log(id + ' udpassociate ' + address + ' ' + port);
 
-                        info[id].udpServer = dgram.createSocket({
+                        info.udpAddress = address;
+                        info.udpPort = port;
+                        info.udpServer = dgram.createSocket({
                             type: 'udp6',
                         }).on('error', (err) => {
-                            console.error(id.slice(0, 4) + ' udp server error');
+                            console.error(id + ' udp server error');
                             console.error(err);
                         }).on('socks5client.message', (localAddress, localPort, remoteAddress, remotePort, msg) => {
                             sendJson(['message', remoteAddress, remotePort], msg);
                         }).on('socks5.step', (step) => {
-                            // console.error(id.slice(0, 4) + ' socks5 udp step ' + step);
+                            // console.error(id + ' socks5 udp step ' + step);
                         }).on('socks5.error', (step) => {
-                            console.error(id.slice(0, 4) + ' socks5 udp error ' + step);
+                            console.error(id + ' socks5 udp error ' + step);
                         }).bind(() => {
-                            sendJson(['udpassociate'], rawId);
+                            sendJson(['udpassociate'], null);
                         });
 
-                        socks5udp.init(info[id].udpServer);
+                        socks5udp.init(info.udpServer);
                     }).on('socks5client.data', (chunk) => {
                         sendJson(['data'], chunk);
                     }).once('socks5client.end', () => {
-                        // console.error(id.slice(0, 4) + ' end');
+                        // console.error(id + ' end');
 
-                        if (info[id].udpServer) {
-                            info[id].udpServer.close();
-                            info[id].udpServer = null;
+                        if (info.udpServer) {
+                            info.udpServer.close();
+                            info.udpServer = null;
                         }
 
                         sendJson(['end'], null);
                     }).once('socks5client.close', () => {
-                        // console.error(id.slice(0, 4) + ' close');
+                        // console.error(id + ' close');
 
                         close();
                     }).on('socks5.step', (step) => {
-                        // console.error(id.slice(0, 4) + ' socks5 tcp step ' + step);
+                        // console.error(id + ' socks5 tcp step ' + step);
                     }).on('socks5.error', (step) => {
-                        console.error(id.slice(0, 4) + ' socks5 tcp error ' + step);
+                        console.error(id + ' socks5 tcp error ' + step);
                     }).resume();
                 });
             }).on('error', (err) => {
@@ -109,45 +107,39 @@ module.exports = (listenPort) => {
             return piped;
         },
 
-        open: (callback) => {
-            let id = null;
-
+        open: (info, callback) => {
             callback((data) => {
                 // send
 
                 const json = serialize.getJson(data);
                 const chunk = serialize.getChunk(data);
 
-                let udpListen = null;
+                let address = null;
 
                 switch (json[0]) {
                     case 'open':
-                        id = chunk.toString('hex');
-
-                        info[id].socket.emit('socks5server.open', json[1], json[2], json[3]);
+                        info.socket.emit('socks5server.open', json[1], json[2], json[3]);
 
                         break;
                     case 'connection':
-                        info[id].socket.emit('socks5server.connection', json[1], json[2], json[3]);
+                        info.socket.emit('socks5server.connection', json[1], json[2], json[3]);
 
                         break;
                     case 'udpassociate':
-                        id = chunk.toString('hex');
-
-                        udpListen = info[id].udpServer.address();
-                        info[id].socket.emit('socks5server.udpassociate', udpListen.address, udpListen.port, json[1]);
+                        address = info.udpServer.address();
+                        info.socket.emit('socks5server.udpassociate', address.address, address.port, json[1]);
 
                         break;
                     case 'message':
-                        info[id].udpServer.emit('socks5server.message', info[id].udpAddress, info[id].udpPort, json[1], json[2], chunk);
+                        info.udpServer.emit('socks5server.message', info.udpAddress, info.udpPort, json[1], json[2], chunk);
 
                         break;
                     case 'data':
-                        info[id].socket.emit('socks5server.data', chunk);
+                        info.socket.emit('socks5server.data', chunk);
 
                         break;
                     case 'end':
-                        info[id].socket.emit('socks5server.end');
+                        info.socket.emit('socks5server.end');
 
                         break;
                     default:
@@ -156,13 +148,11 @@ module.exports = (listenPort) => {
             }, () => {
                 // close
 
-                info[id].socket.emit('socks5server.close');
+                info.socket.emit('socks5server.close');
 
-                if (info[id].udpServer) {
-                    info[id].udpServer.close();
+                if (info.udpServer) {
+                    info.udpServer.close();
                 }
-
-                delete info[id];
             });
         },
     };

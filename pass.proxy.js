@@ -15,8 +15,8 @@ module.exports = () => {
             return piped;
         },
 
-        open: (callback) => {
-            next((send, close) => {
+        open: (info, callback) => {
+            next(info, (send, close) => {
                 const sendJson = (json, chunk) => {
                     send(serialize.create(json, chunk));
                 };
@@ -37,14 +37,14 @@ module.exports = () => {
                             socket = net.createConnection(json[2], json[1]).once('connect', () => {
                                 connected = true;
 
-                                sendJson(['open', socket.localAddress, socket.localPort, null], chunk);
+                                sendJson(['open', socket.localAddress, socket.localPort, null], null);
                             }).on('data', (dataChunk) => {
                                 sendJson(['data'], dataChunk);
                             }).once('end', () => {
                                 sendJson(['end'], null);
                             }).on('error', (err) => {
                                 if (!connected && err.code) {
-                                    sendJson(['open', socket.localAddress, socket.localPort, err.code], chunk);
+                                    sendJson(['open', socket.localAddress, socket.localPort, err.code], null);
                                 }
                             });
 
@@ -57,7 +57,7 @@ module.exports = () => {
 
                                 const address = tcpServer.address();
 
-                                sendJson(['open', address.address, address.port, null], chunk);
+                                sendJson(['open', address.address, address.port, null], null);
                             }).once('connection', (remoteSocket) => {
                                 socket = remoteSocket.on('data', (dataChunk) => {
                                     sendJson(['data'], dataChunk);
@@ -75,7 +75,7 @@ module.exports = () => {
                                 if (!connected && err.code) {
                                     const address = tcpServer.address();
 
-                                    sendJson(['open', address.address, address.port, err.code], chunk);
+                                    sendJson(['open', address.address, address.port, err.code], null);
                                 }
                             }).listen();
 
@@ -86,12 +86,12 @@ module.exports = () => {
                             }).once('listening', () => {
                                 connected = true;
 
-                                sendJson(['udpassociate', null], chunk);
-                            }).on('message', (msg, info) => {
-                                sendJson(['message', info.address, info.port], msg);
+                                sendJson(['udpassociate', null], null);
+                            }).on('message', (msg, address) => {
+                                sendJson(['message', address.address, address.port], msg);
                             }).on('error', (err) => {
                                 if (!connected && err.code) {
-                                    sendJson(['udpassociate', err.code], chunk);
+                                    sendJson(['udpassociate', err.code], null);
                                 }
                             }).bind();
 

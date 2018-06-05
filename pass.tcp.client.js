@@ -12,8 +12,8 @@ module.exports = (address, port) => {
             return piped;
         },
 
-        open: (callback) => {
-            next((send, close) => {
+        open: (info, callback) => {
+            next(info, (send, close) => {
                 const socket = net.createConnection(address, port);
 
                 socket.on('data', (chunk) => {

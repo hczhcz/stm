@@ -10,8 +10,8 @@ module.exports = () => {
             return piped;
         },
 
-        open: (callback) => {
-            next((send, close) => {
+        open: (info, callback) => {
+            next(info, (send, close) => {
                 let buffer = Buffer.alloc(0);
 
                 const parse = () => {

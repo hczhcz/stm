@@ -12,8 +12,8 @@ module.exports = () => {
             return piped;
         },
 
-        open: (callback) => {
-            next((send, close) => {
+        open: (info, callback) => {
+            next(info, (send, close) => {
                 const inflate = zlib.createInflateRaw({
                     flush: zlib.constants.Z_SYNC_FLUSH,
                 });
