@@ -16,6 +16,7 @@ module.exports = () => {
             next(info, (send, close) => {
                 const inflate = zlib.createInflateRaw({
                     flush: zlib.constants.Z_SYNC_FLUSH,
+                    finishFlush: zlib.constants.Z_SYNC_FLUSH,
                 });
 
                 inflate.on('data', (chunk) => {
