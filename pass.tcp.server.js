@@ -10,10 +10,14 @@ module.exports = (port) => {
             }).on('connection', (socket) => {
                 socket.pause();
 
+                const info = {
+                    socket: socket,
+                };
+
                 piped.open(info, (send, close) => {
                     socket.on('data', (chunk) => {
                         send(chunk);
-                    }).on('end', () => {
+                    }).on('close', () => {
                         close();
                     }).resume();
                 });
@@ -24,11 +28,11 @@ module.exports = (port) => {
             callback((data) => {
                 // send
 
-                socket.write(data);
+                info.socket.write(data);
             }, () => {
                 // close
 
-                socket.end();
+                info.socket.destroy();
             });
         },
     };

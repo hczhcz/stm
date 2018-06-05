@@ -64,6 +64,8 @@ module.exports = (listenPort) => {
                         info.udpPort = port;
                         info.udpServer = dgram.createSocket({
                             type: 'udp6',
+                        }).once('listening', () => {
+                            sendJson(['udpassociate'], null);
                         }).on('error', (err) => {
                             console.error(id + ' udp server error');
                             console.error(err);
@@ -73,9 +75,7 @@ module.exports = (listenPort) => {
                             // console.error(id + ' socks5 udp step ' + step);
                         }).on('socks5.error', (step) => {
                             console.error(id + ' socks5 udp error ' + step);
-                        }).bind(() => {
-                            sendJson(['udpassociate'], null);
-                        });
+                        }).bind();
 
                         socks5udp.init(info.udpServer);
                     }).on('socks5client.data', (chunk) => {

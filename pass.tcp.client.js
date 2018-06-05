@@ -18,7 +18,7 @@ module.exports = (address, port) => {
 
                 socket.on('data', (chunk) => {
                     send(chunk);
-                }).once('end', () => {
+                }).once('close', () => {
                     close();
                 });
 
@@ -29,7 +29,7 @@ module.exports = (address, port) => {
                 }, () => {
                     // close
 
-                    socket.end();
+                    socket.destroy();
                 });
             });
         },
