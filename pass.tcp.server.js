@@ -22,6 +22,8 @@ module.exports = (port) => {
                     }).resume();
                 });
             }).listen(port);
+
+            return piped;
         },
 
         open: (info, callback) => {
