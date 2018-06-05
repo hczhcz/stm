@@ -99,9 +99,7 @@ module.exports = (listenPort) => {
                         // console.error(id.slice(0, 4) + ' socks5 tcp step ' + step);
                     }).on('socks5.error', (step) => {
                         console.error(id.slice(0, 4) + ' socks5 tcp error ' + step);
-                    });
-
-                    socket.resume();
+                    }).resume();
                 });
             }).on('error', (err) => {
                 console.error('tcp server error');

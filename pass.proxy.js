@@ -6,17 +6,17 @@ const dgram = require('dgram');
 const serialize = require('./serialize');
 
 module.exports = () => {
-    let backward = null;
+    let next = null;
 
     return {
         pipe: (piped) => {
-            backward = piped.open;
+            next = piped.open;
 
             return piped;
         },
 
         open: (callback) => {
-            backward((send, close) => {
+            next((send, close) => {
                 const sendJson = (json, chunk) => {
                     send(serialize.create(json, chunk));
                 };
