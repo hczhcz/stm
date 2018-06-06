@@ -17,5 +17,5 @@ for (let i = 0; i < configList.length; i += 1) {
 passList.push(passList[0]);
 
 for (let i = 1; i < passList.length; i += 1) {
-    passList[i - 1].pipe(passList[i]);
+    passList[i - 1].next = passList[i].open;
 }

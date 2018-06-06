@@ -5,17 +5,11 @@ const cryptoUtil = require('./crypto.util');
 module.exports = (algorithm, password) => {
     let ivSet = {};
 
-    let next = null;
-
-    return {
-        pipe: (piped) => {
-            next = piped.open;
-
-            return piped;
-        },
+    const self = {
+        next: null,
 
         open: (info, callback) => {
-            next(info, (send, close) => {
+            self.next(info, (send, close) => {
                 let buffer = Buffer.alloc(0);
 
                 let iv = null;
@@ -96,4 +90,6 @@ module.exports = (algorithm, password) => {
             });
         },
     };
+
+    return self;
 };

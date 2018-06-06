@@ -3,17 +3,11 @@
 const zlib = require('zlib');
 
 module.exports = () => {
-    let next = null;
-
-    return {
-        pipe: (piped) => {
-            next = piped.open;
-
-            return piped;
-        },
+    const self = {
+        next: null,
 
         open: (info, callback) => {
-            next(info, (send, close) => {
+            self.next(info, (send, close) => {
                 const inflate = zlib.createInflateRaw({
                     flush: zlib.constants.Z_SYNC_FLUSH,
                     finishFlush: zlib.constants.Z_SYNC_FLUSH,
@@ -37,4 +31,6 @@ module.exports = () => {
             });
         },
     };
+
+    return self;
 };

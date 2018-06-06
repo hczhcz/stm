@@ -1,17 +1,11 @@
 'use strict';
 
 module.exports = () => {
-    let next = null;
-
-    return {
-        pipe: (piped) => {
-            next = piped.open;
-
-            return piped;
-        },
+    const self = {
+        next: null,
 
         open: (info, callback) => {
-            next(info, (send, close) => {
+            self.next(info, (send, close) => {
                 let buffer = Buffer.alloc(0);
 
                 const parse = () => {
@@ -43,4 +37,6 @@ module.exports = () => {
             });
         },
     };
+
+    return self;
 };

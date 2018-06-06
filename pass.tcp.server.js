@@ -3,28 +3,8 @@
 const net = require('net');
 
 module.exports = (port) => {
-    return {
-        pipe: (piped) => {
-            net.createServer({
-                allowHalfOpen: true,
-            }).on('connection', (socket) => {
-                socket.pause();
-
-                const info = {
-                    socket: socket,
-                };
-
-                piped.open(info, (send, close) => {
-                    socket.on('data', (chunk) => {
-                        send(chunk);
-                    }).on('close', () => {
-                        close();
-                    }).resume();
-                });
-            }).listen(port);
-
-            return piped;
-        },
+    const self = {
+        next: null,
 
         open: (info, callback) => {
             callback((data) => {
@@ -38,4 +18,24 @@ module.exports = (port) => {
             });
         },
     };
+
+    net.createServer({
+        allowHalfOpen: true,
+    }).on('connection', (socket) => {
+        socket.pause();
+
+        const info = {
+            socket: socket,
+        };
+
+        self.next(info, (send, close) => {
+            socket.on('data', (chunk) => {
+                send(chunk);
+            }).on('close', () => {
+                close();
+            }).resume();
+        });
+    }).listen(port);
+
+    return self;
 };

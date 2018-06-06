@@ -4,17 +4,11 @@ const crypto = require('crypto');
 const cryptoUtil = require('./crypto.util');
 
 module.exports = (algorithm, password) => {
-    let next = null;
-
-    return {
-        pipe: (piped) => {
-            next = piped.open;
-
-            return piped;
-        },
+    const self = {
+        next: null,
 
         open: (info, callback) => {
-            next(info, (send, close) => {
+            self.next(info, (send, close) => {
                 const iv = crypto.randomBytes(16);
                 const cipher = cryptoUtil.encryptInit(algorithm, password, iv);
 
@@ -42,4 +36,6 @@ module.exports = (algorithm, password) => {
             });
         },
     };
+
+    return self;
 };

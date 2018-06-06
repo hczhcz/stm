@@ -6,17 +6,11 @@ const dgram = require('dgram');
 const serialize = require('./serialize');
 
 module.exports = () => {
-    let next = null;
-
-    return {
-        pipe: (piped) => {
-            next = piped.open;
-
-            return piped;
-        },
+    const self = {
+        next: null,
 
         open: (info, callback) => {
-            next(info, (send, close) => {
+            self.next(info, (send, close) => {
                 const sendJson = (json, chunk) => {
                     send(serialize.create(json, chunk));
                 };
@@ -136,4 +130,6 @@ module.exports = () => {
             });
         },
     };
+
+    return self;
 };
