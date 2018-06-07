@@ -2,17 +2,19 @@
 
 const cryptoUtil = require('./crypto.util');
 
-module.exports = (algorithm, password) => {
-    let ivSet = {};
+module.exports = (algorithm, keyLength, ivLength, password) => {
+    let nonceSet = {};
 
     const self = {
         next: null,
 
         open: (info, callback) => {
             self.next(info, (send, close) => {
+                const nonceLength = Math.min(keyLength + ivLength, 32);
+
                 let buffer = Buffer.alloc(0);
 
-                let iv = null;
+                let nonce = null;
                 let decipher = null;
 
                 let verified = false;
@@ -25,22 +27,22 @@ module.exports = (algorithm, password) => {
 
                         buffer = buffer.slice(8);
 
-                        const ivString = 'iv_' + iv.toString('hex');
+                        const nonceString = '#' + nonce.toString('hex');
                         const now = Math.floor(Date.now() / 1000 / 60);
 
-                        const oldIvSet = ivSet;
+                        const oldNonceSet = nonceSet;
 
-                        ivSet = {};
-                        ivSet[now - 1] = oldIvSet[now - 1] || {};
-                        ivSet[now] = oldIvSet[now] || {};
-                        ivSet[now + 1] = oldIvSet[now + 1] || {};
+                        nonceSet = {};
+                        nonceSet[now - 1] = oldNonceSet[now - 1] || {};
+                        nonceSet[now] = oldNonceSet[now] || {};
+                        nonceSet[now + 1] = oldNonceSet[now + 1] || {};
 
                         if (
                             magic === 0xDEADBEEF
-                            && timestamp in ivSet
-                            && !(ivString in ivSet[timestamp])
+                            && timestamp in nonceSet
+                            && !(nonceString in nonceSet[timestamp])
                         ) {
-                            ivSet[timestamp][ivString] = true;
+                            nonceSet[timestamp][nonceString] = true;
                             verified = true;
 
                             send(buffer);
@@ -52,11 +54,11 @@ module.exports = (algorithm, password) => {
                 };
 
                 const parse = () => {
-                    if (buffer.length >= 16) {
-                        iv = buffer.slice(0, 16);
-                        decipher = cryptoUtil.decryptInit(algorithm, password, iv);
+                    if (buffer.length >= nonceLength) {
+                        nonce = buffer.slice(0, nonceLength);
+                        decipher = cryptoUtil.decryptInit(algorithm, keyLength, ivLength, password, nonce);
 
-                        buffer = decipher.update(buffer.slice(16));
+                        buffer = decipher.update(buffer.slice(nonceLength));
 
                         verify();
                     }

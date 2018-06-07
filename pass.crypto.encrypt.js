@@ -3,16 +3,18 @@
 const crypto = require('crypto');
 const cryptoUtil = require('./crypto.util');
 
-module.exports = (algorithm, password) => {
+module.exports = (algorithm, keyLength, ivLength, password) => {
     const self = {
         next: null,
 
         open: (info, callback) => {
             self.next(info, (send, close) => {
-                const iv = crypto.randomBytes(16);
-                const cipher = cryptoUtil.encryptInit(algorithm, password, iv);
+                const nonceLength = Math.min(keyLength + ivLength, 32);
 
-                send(iv);
+                const nonce = crypto.randomBytes(nonceLength);
+                const cipher = cryptoUtil.encryptInit(algorithm, keyLength, ivLength, password, nonce);
+
+                send(nonce);
 
                 // verification info
 
