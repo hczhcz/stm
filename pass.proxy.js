@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const net = require('net');
 const dgram = require('dgram');
 
@@ -15,6 +16,8 @@ module.exports = () => {
                     send(serialize.create(json, chunk));
                 };
 
+                const id = crypto.randomBytes(2).toString('hex');
+
                 let socket = null;
                 let tcpServer = null;
                 let udpServer = null;
@@ -28,6 +31,8 @@ module.exports = () => {
 
                     switch (json[0]) {
                         case 'connect':
+                            console.log(id + ' connect ' + json[1] + ' ' + json[2]);
+
                             socket = net.createConnection(json[2], json[1]).once('connect', () => {
                                 connected = true;
 
@@ -44,6 +49,8 @@ module.exports = () => {
 
                             break;
                         case 'bind':
+                            console.log(id + ' bind ' + json[1] + ' ' + json[2]);
+
                             tcpServer = net.createServer({
                                 allowHalfOpen: true,
                             }).once('listening', () => {
@@ -77,6 +84,8 @@ module.exports = () => {
 
                             break;
                         case 'udpassociate':
+                            console.log(id + ' udpassociate');
+
                             udpServer = dgram.createSocket({
                                 type: 'udp6',
                             }).once('listening', () => {
