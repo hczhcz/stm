@@ -41,10 +41,13 @@ module.exports = () => {
                                 sendJson(['data'], dataChunk);
                             }).once('end', () => {
                                 sendJson(['end'], null);
-                            }).on('error', (err) => {
+                            }).once('error', (err) => {
                                 if (!connected && err.code) {
                                     sendJson(['open', socket.localAddress, socket.localPort, err.code], null);
                                 }
+                            }).on('error', (err) => {
+                                console.error(id + ' request error');
+                                console.error(err);
                             });
 
                             break;
@@ -56,8 +59,6 @@ module.exports = () => {
                             }).once('listening', () => {
                                 connected = true;
 
-                                const address = tcpServer.address();
-
                                 // note: hack
                                 sendJson(['open', info.socket.localAddress, info.socket.localPort, null], null);
                             }).once('connection', (remoteSocket) => {
@@ -68,18 +69,22 @@ module.exports = () => {
                                 }).once('close', () => {
                                     tcpServer.close();
                                     tcpServer = null;
+                                }).on('error', (err) => {
+                                    console.error(id + ' connection error');
+                                    console.error(err);
                                 });
 
                                 const address = remoteSocket.address();
 
                                 sendJson(['connection', address.address, address.port, null], null);
-                            }).on('error', (err) => {
+                            }).once('error', (err) => {
                                 if (!connected && err.code) {
-                                    const address = tcpServer.address();
-
                                     // note: hack
                                     sendJson(['open', info.socket.localAddress, info.socket.localPort, err.code], null);
                                 }
+                            }).on('error', (err) => {
+                                console.error(id + ' tcp server error');
+                                console.error(err);
                             }).listen();
 
                             break;
@@ -94,10 +99,13 @@ module.exports = () => {
                                 sendJson(['udpassociate', null], null);
                             }).on('message', (msg, address) => {
                                 sendJson(['message', address.address, address.port], msg);
-                            }).on('error', (err) => {
+                            }).once('error', (err) => {
                                 if (!connected && err.code) {
                                     sendJson(['udpassociate', err.code], null);
                                 }
+                            }).on('error', (err) => {
+                                console.error(id + ' udp bind error');
+                                console.error(err);
                             }).bind();
 
                             break;

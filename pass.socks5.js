@@ -116,7 +116,7 @@ module.exports = (listenPort) => {
                 }).once('listening', () => {
                     sendJson(['udpassociate'], null);
                 }).on('error', (err) => {
-                    console.error(id + ' udp server error');
+                    console.error(id + ' udp bind error');
                     console.error(err);
                 }).on('socks5client.message', (localAddress, localPort, remoteAddress, remotePort, msg) => {
                     sendJson(['message', remoteAddress, remotePort], msg);
