@@ -81,8 +81,9 @@ module.exports = (algorithm, keyLength, ivLength, password) => {
                 }, () => {
                     // close
 
-                    if (verified) {
-                        send(decipher.final());
+                    if (verified && decipher.final().length) {
+                        // note: should be flushed earlier
+                        throw Error();
                     }
 
                     if (!failed) {

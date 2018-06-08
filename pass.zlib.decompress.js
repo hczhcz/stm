@@ -15,8 +15,6 @@ module.exports = () => {
 
                 inflate.on('data', (chunk) => {
                     send(chunk);
-                }).on('end', () => {
-                    close();
                 });
 
                 callback((data) => {
@@ -27,6 +25,8 @@ module.exports = () => {
                     // close
 
                     inflate.end();
+
+                    close();
                 });
             });
         },

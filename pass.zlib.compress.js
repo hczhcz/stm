@@ -16,8 +16,6 @@ module.exports = (level) => {
 
                 deflate.on('data', (chunk) => {
                     send(chunk);
-                }).on('end', () => {
-                    close();
                 });
 
                 callback((data) => {
@@ -28,6 +26,8 @@ module.exports = (level) => {
                     // close
 
                     deflate.end();
+
+                    close();
                 });
             });
         },

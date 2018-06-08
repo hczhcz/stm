@@ -31,7 +31,7 @@ module.exports = (port) => {
         self.next(info, (send, close) => {
             socket.on('data', (chunk) => {
                 send(chunk);
-            }).on('close', () => {
+            }).once('close', () => {
                 close();
             }).resume();
         });

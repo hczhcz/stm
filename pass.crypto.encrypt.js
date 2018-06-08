@@ -32,7 +32,11 @@ module.exports = (algorithm, keyLength, ivLength, password) => {
                 }, () => {
                     // close
 
-                    send(cipher.final());
+                    if (cipher.final().length) {
+                        // note: should be flushed earlier
+                        throw Error();
+                    }
+
                     close();
                 });
             });
