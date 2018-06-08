@@ -1,6 +1,7 @@
 'use strict';
 
 const crypto = require('crypto');
+
 const cryptoUtil = require('./crypto.util');
 
 module.exports = (algorithm, keyLength, ivLength, password) => {

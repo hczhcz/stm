@@ -51,7 +51,8 @@ module.exports = () => {
 
                                 const address = tcpServer.address();
 
-                                sendJson(['open', address.address, address.port, null], null);
+                                // note: hack
+                                sendJson(['open', info.socket.localAddress, info.socket.localPort, null], null);
                             }).once('connection', (remoteSocket) => {
                                 socket = remoteSocket.on('data', (dataChunk) => {
                                     sendJson(['data'], dataChunk);
@@ -69,7 +70,8 @@ module.exports = () => {
                                 if (!connected && err.code) {
                                     const address = tcpServer.address();
 
-                                    sendJson(['open', address.address, address.port, err.code], null);
+                                    // note: hack
+                                    sendJson(['open', info.socket.localAddress, info.socket.localPort, err.code], null);
                                 }
                             }).listen();
 
