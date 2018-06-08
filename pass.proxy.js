@@ -52,7 +52,7 @@ module.exports = () => {
 
                             break;
                         case 'bind':
-                            console.log(id + ' bind ' + json[1] + ' ' + json[2]);
+                            console.log(id + ' bind');
 
                             tcpServer = net.createServer({
                                 allowHalfOpen: true,
@@ -74,9 +74,7 @@ module.exports = () => {
                                     console.error(err);
                                 });
 
-                                const address = remoteSocket.address();
-
-                                sendJson(['connection', address.address, address.port, null], null);
+                                sendJson(['connection', remoteSocket.remoteAddress, remoteSocket.remotePort, null], null);
                             }).once('error', (err) => {
                                 if (!connected && err.code) {
                                     // note: hack

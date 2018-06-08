@@ -10,7 +10,7 @@ const socks5udp = require('./socks5.udp');
 
 // send:
 // connect(address, port)
-// bind(address, port)
+// bind()
 // udpassociate()
 // message(address, port) + msg
 // data() + chunk
@@ -105,7 +105,7 @@ module.exports = (listenPort) => {
             }).once('socks5client.bind', (address, port) => {
                 console.log(id + ' bind ' + address + ' ' + port);
 
-                sendJson(['bind', address, port], null);
+                sendJson(['bind'], null);
             }).once('socks5client.udpassociate', (address, port) => {
                 console.log(id + ' udpassociate ' + address + ' ' + port);
 
