@@ -25,7 +25,7 @@ module.exports = (level) => {
                 }, () => {
                     // close
 
-                    deflate.end();
+                    deflate.destroy();
 
                     close();
                 });

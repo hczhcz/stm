@@ -24,7 +24,7 @@ module.exports = () => {
                 }, () => {
                     // close
 
-                    inflate.end();
+                    inflate.destroy();
 
                     close();
                 });
