@@ -6,7 +6,7 @@ const dgram = require('dgram');
 
 const serialize = require('./serialize');
 
-module.exports = () => {
+module.exports = (fullResponse) => {
     const self = {
         next: null,
 
@@ -36,13 +36,15 @@ module.exports = () => {
                             socket = net.createConnection(json[2], json[1]).once('connect', () => {
                                 connected = true;
 
-                                sendJson(['open', socket.localAddress, socket.localPort, null], null);
+                                if (fullResponse) {
+                                    sendJson(['open', socket.localAddress, socket.localPort, null], null);
+                                }
                             }).on('data', (dataChunk) => {
                                 sendJson(['data'], dataChunk);
                             }).once('end', () => {
                                 sendJson(['end'], null);
                             }).once('error', (err) => {
-                                if (!connected && err.code) {
+                                if (fullResponse && !connected && err.code) {
                                     sendJson(['open', socket.localAddress, socket.localPort, err.code], null);
                                 }
                             }).on('error', (err) => {
@@ -94,11 +96,13 @@ module.exports = () => {
                             }).once('listening', () => {
                                 connected = true;
 
-                                sendJson(['udpassociate', null], null);
+                                if (fullResponse) {
+                                    sendJson(['udpassociate', null], null);
+                                }
                             }).on('message', (msg, address) => {
                                 sendJson(['message', address.address, address.port], msg);
                             }).once('error', (err) => {
-                                if (!connected && err.code) {
+                                if (fullResponse && !connected && err.code) {
                                     sendJson(['udpassociate', err.code], null);
                                 }
                             }).on('error', (err) => {
