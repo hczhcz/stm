@@ -105,7 +105,7 @@ module.exports = (listenPort, fullResponse) => {
 
                 process.nextTick(() => {
                     if (!fullResponse) {
-                        info.socket.emit('socks5server.open', '0.0.0.0', 0, null);
+                        socket.emit('socks5server.open', '0.0.0.0', 0, null);
                     }
                 });
             }).once('socks5client.bind', (address, port) => {
@@ -125,7 +125,7 @@ module.exports = (listenPort, fullResponse) => {
                     if (!fullResponse) {
                         const bind = info.udpServer.address();
 
-                        info.socket.emit('socks5server.udpassociate', bind.address, bind.port, null);
+                        socket.emit('socks5server.udpassociate', bind.address, bind.port, null);
                     }
                 }).on('error', (err) => {
                     console.error(id + ' udp error');

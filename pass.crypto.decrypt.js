@@ -48,6 +48,7 @@ module.exports = (algorithm, keyLength, ivLength, password) => {
                             send(buffer);
                         } else {
                             failed = true;
+
                             close();
                         }
                     }

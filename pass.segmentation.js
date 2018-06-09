@@ -15,6 +15,7 @@ module.exports = () => {
 
                     if (size) {
                         send(buffer.slice(0, size));
+
                         buffer = buffer.slice(size);
 
                         parse();
