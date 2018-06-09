@@ -134,7 +134,7 @@ module.exports = (fullResponse) => {
                 }, () => {
                     // close
 
-                    if (socket && !socket.destroyed) {
+                    if (socket) {
                         socket.destroy();
                     }
 

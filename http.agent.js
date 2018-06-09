@@ -2,6 +2,25 @@
 
 const url = require('url');
 
+const establish = (req, res) => {
+    req.on('data', (chunk) => {
+        req.emit('http.data', chunk);
+    }).once('end', () => {
+        req.emit('http.end');
+    }).once('close', () => {
+        req.emit('http.close');
+    });
+
+    res.on('http.data', (chunk) => {
+        res.write(chunk);
+    }).once('http.end', () => {
+        res.end();
+    }).once('http.close', () => {
+        req.destroy();
+        res.destroy();
+    });
+};
+
 const acceptRequest = (req, res) => {
     const address = url.parse(req.url);
 
@@ -23,24 +42,7 @@ const acceptRequest = (req, res) => {
 
     req.emit('http.header', '\r\n');
 
-    // pipe
-
-    req.on('data', (chunk) => {
-        req.emit('http.data', chunk);
-    }).once('end', () => {
-        req.emit('http.end');
-    }).once('close', () => {
-        req.emit('http.close');
-    });
-
-    res.on('http.data', (chunk) => {
-        res.write(chunk);
-    }).once('http.end', () => {
-        res.end();
-    }).once('http.close', () => {
-        req.destroy();
-        res.destroy();
-    });
+    establish(req, res);
 };
 
 const acceptConnect = (req, res) => {
@@ -55,28 +57,9 @@ const acceptConnect = (req, res) => {
     res.emit(
         'http.header',
         'HTTP/' + req.httpVersion + ' 200 Connection Established\r\n'
-    );
+    ).emit('http.header', '\r\n');
 
-    res.emit('http.header', '\r\n');
-
-    // pipe
-
-    req.on('data', (chunk) => {
-        req.emit('http.data', chunk);
-    }).once('end', () => {
-        req.emit('http.end');
-    }).once('close', () => {
-        req.emit('http.close');
-    });
-
-    res.on('http.data', (chunk) => {
-        res.write(chunk);
-    }).once('http.end', () => {
-        res.end();
-    }).once('http.close', () => {
-        req.destroy();
-        res.destroy();
-    });
+    establish(req, res);
 };
 
 module.exports = {
