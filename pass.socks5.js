@@ -96,10 +96,10 @@ module.exports = (listenPort, fullResponse) => {
             socks5.accept(socket);
 
             socket.on('error', (err) => {
-                console.error(id + ' request error');
+                console.error(id + ' tcp error');
                 console.error(err);
             }).once('socks5client.connect', (address, port) => {
-                console.log(id + ' connect ' + address + ' ' + port);
+                console.log(id + ' socks5 connect ' + address + ' ' + port);
 
                 sendJson(['connect', address, port], null);
 
@@ -109,11 +109,11 @@ module.exports = (listenPort, fullResponse) => {
                     }
                 });
             }).once('socks5client.bind', (address, port) => {
-                console.log(id + ' bind ' + address + ' ' + port);
+                console.log(id + ' socks5 bind ' + address + ' ' + port);
 
                 sendJson(['bind'], null);
             }).once('socks5client.udpassociate', (address, port) => {
-                console.log(id + ' udpassociate ' + address + ' ' + port);
+                console.log(id + ' socks5 udpassociate ' + address + ' ' + port);
 
                 info.udpAddress = address;
                 info.udpPort = port;
@@ -128,9 +128,11 @@ module.exports = (listenPort, fullResponse) => {
                         info.socket.emit('socks5server.udpassociate', bind.address, bind.port, null);
                     }
                 }).on('error', (err) => {
-                    console.error(id + ' udp bind error');
+                    console.error(id + ' udp error');
                     console.error(err);
                 }).on('socks5client.message', (localAddress, localPort, remoteAddress, remotePort, msg) => {
+                    // console.error(id + ' socks5 message');
+
                     sendJson(['message', remoteAddress, remotePort], msg);
                 }).on('socks5.step', (step) => {
                     // console.error(id + ' socks5 udp step ' + step);
@@ -140,11 +142,11 @@ module.exports = (listenPort, fullResponse) => {
 
                 socks5udp.init(info.udpServer);
             }).on('socks5client.data', (chunk) => {
-                // console.error(id + ' data');
+                // console.error(id + ' socks5 data');
 
                 sendJson(['data'], chunk);
             }).once('socks5client.end', () => {
-                // console.error(id + ' end');
+                // console.error(id + ' socks5 end');
 
                 if (info.udpServer) {
                     info.udpServer.close();
@@ -153,7 +155,7 @@ module.exports = (listenPort, fullResponse) => {
 
                 sendJson(['end'], null);
             }).once('socks5client.close', () => {
-                // console.error(id + ' close');
+                // console.error(id + ' socks5 close');
 
                 close();
             }).on('socks5.step', (step) => {

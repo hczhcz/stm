@@ -48,7 +48,7 @@ module.exports = (fullResponse) => {
                                     sendJson(['open', socket.localAddress, socket.localPort, err.code], null);
                                 }
                             }).on('error', (err) => {
-                                console.error(id + ' request error');
+                                console.error(id + ' tcp error');
                                 console.error(err);
                             });
 
@@ -72,7 +72,7 @@ module.exports = (fullResponse) => {
                                     tcpServer.close();
                                     tcpServer = null;
                                 }).on('error', (err) => {
-                                    console.error(id + ' connection error');
+                                    console.error(id + ' tcp error');
                                     console.error(err);
                                 });
 
@@ -106,7 +106,7 @@ module.exports = (fullResponse) => {
                                     sendJson(['udpassociate', err.code], null);
                                 }
                             }).on('error', (err) => {
-                                console.error(id + ' udp bind error');
+                                console.error(id + ' udp error');
                                 console.error(err);
                             }).bind();
 
