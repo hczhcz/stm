@@ -1,7 +1,6 @@
 'use strict';
 
 const url = require('url');
-const http = require('http');
 
 const acceptRequest = (req, res) => {
     const address = url.parse(req.url);
@@ -18,8 +17,8 @@ const acceptRequest = (req, res) => {
     for (let i = 0; i < req.rawHeaders.length; i += 2) {
         req.emit(
             'http.header',
-            req.rawHeaders[i] + ':' + req.rawHeaders[i + 1] + '\r\n';
-        )
+            req.rawHeaders[i] + ':' + req.rawHeaders[i + 1] + '\r\n'
+        );
     }
 
     req.emit('http.header', '\r\n');

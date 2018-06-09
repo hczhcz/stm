@@ -1,5 +1,7 @@
 'use strict';
 
+const serialize = require('./serialize');
+
 module.exports = () => {
     const self = {
         next: null,
@@ -9,17 +11,13 @@ module.exports = () => {
                 let buffer = Buffer.alloc(0);
 
                 const parse = () => {
-                    if (buffer.length >= 8) {
-                        const jsonSize = buffer.readUInt32BE(0);
-                        const chunkSize = buffer.readUInt32BE(4);
-                        const size = 8 + jsonSize + chunkSize;
+                    const size = serialize.tryParse(buffer);
 
-                        if (buffer.length >= size) {
-                            send(buffer, size);
-                            buffer = buffer.slice(size);
+                    if (size) {
+                        send(buffer.slice(0, size));
+                        buffer = buffer.slice(size);
 
-                            parse();
-                        }
+                        parse();
                     }
                 };
 

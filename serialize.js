@@ -29,8 +29,23 @@ const getChunk = (data) => {
     return data.slice(8 + jsonSize, 8 + jsonSize + chunkSize);
 };
 
+const tryParse = (data) => {
+    if (data.length >= 8) {
+        const jsonSize = data.readUInt32BE(0);
+        const chunkSize = data.readUInt32BE(4);
+        const size = 8 + jsonSize + chunkSize;
+
+        if (data.length >= size) {
+            return size;
+        }
+    }
+
+    return 0;
+};
+
 module.exports = {
     create: create,
     getJson: getJson,
     getChunk: getChunk,
+    tryParse: tryParse,
 };
