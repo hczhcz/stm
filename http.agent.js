@@ -10,6 +10,8 @@ const accept = (socket) => {
     let piped = false;
 
     const establish = () => {
+        socket.emit('http.step', 'establish');
+
         socket.on('data', (chunk) => {
             socket.emit('httpclient.data', chunk);
         }).once('end', () => {
@@ -80,7 +82,7 @@ const accept = (socket) => {
 
                     parseHeader();
                 } else {
-                    socket.emit('http.error', 'header');
+                    socket.emit('http.error', 'parse');
                     socket.end();
                 }
             } else {
@@ -91,7 +93,7 @@ const accept = (socket) => {
 
                     parseHeader();
                 } else {
-                    socket.emit('http.error', 'header');
+                    socket.emit('http.error', 'parse');
                     socket.end();
                 }
             }
@@ -113,7 +115,7 @@ const accept = (socket) => {
 
                 parseHeader();
             } else {
-                socket.emit('http.error', 'startline');
+                socket.emit('http.error', 'parse');
                 socket.end();
             }
         }

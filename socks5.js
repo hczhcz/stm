@@ -43,6 +43,8 @@ const accept = (socket) => {
                 parseDone = true;
 
                 const establish = () => {
+                    socket.emit('socks5.step', 'establish');
+
                     socket.on('data', (chunk) => {
                         socket.emit('socks5client.data', chunk);
                     }).once('end', () => {
@@ -63,8 +65,6 @@ const accept = (socket) => {
                 switch (task.command) {
                     case 'connect':
                         socket.once('socks5server.open', waitAddress(() => {
-                            socket.emit('socks5.step', 'connect');
-
                             establish();
                         })).emit('socks5client.connect', socks5address.stringify(task), task.port);
 
@@ -72,8 +72,6 @@ const accept = (socket) => {
                     case 'bind':
                         socket.once('socks5server.open', waitAddress(() => {
                             socket.once('socks5server.connection', waitAddress(() => {
-                                socket.emit('socks5.step', 'bind');
-
                                 establish();
                             }));
                         })).emit('socks5client.bind', socks5address.stringify(task), task.port);
@@ -81,8 +79,6 @@ const accept = (socket) => {
                         break;
                     case 'udpassociate':
                         socket.once('socks5server.udpassociate', waitAddress(() => {
-                            socket.emit('socks5.step', 'udpassociate');
-
                             establish();
                         })).emit('socks5client.udpassociate', socks5address.stringify(task), task.port);
 
