@@ -6,7 +6,7 @@ const net = require('net');
 const serialize = require('./serialize');
 const httpAgent = require('./http.agent');
 
-module.exports = (listenPort, fullResponse) => {
+module.exports = (listenPort) => {
     const self = {
         next: null,
 

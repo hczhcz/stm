@@ -36,14 +36,16 @@ const accept = (socket) => {
             if (line === '') {
                 socket.emit('http.step', 'header');
 
-                const address = url.parse(startLine[2]);
-
                 // notice: how about 'OPTIONS' and 'TRACE'?
                 if (startLine[1] === 'CONNECT') {
+                    const address = url.parse('http://' + startLine[2]);
+
                     socket.emit('httpclient.connect', address.hostname, address.port || 80);
 
                     socket.write('HTTP/' + startLine[3] + ' 200 Connection Established\r\n\r\n');
                 } else {
+                    const address = url.parse(startLine[2]);
+
                     socket.emit('httpclient.request', address.hostname, address.port || 80);
 
                     socket.emit('httpclient.data', Buffer.from(

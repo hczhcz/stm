@@ -12,7 +12,7 @@ module.exports = {
     ],
 
     http: [
-        ['http', 2333],
+        ['http', 8080],
         ['zlib.compress', 2],
         ['crypto.encrypt', 'aes-256-cfb', 32, 16, 'fuckGFW'],
         ['tcp.client', '127.0.0.1', 2334],
