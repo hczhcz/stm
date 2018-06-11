@@ -95,19 +95,21 @@ const parse = (
             address: parse4(address),
             port: port,
         };
-    } else if (net.isIPv6(address)) {
+    }
+
+    if (net.isIPv6(address)) {
         return {
             addressType: 'ipv6',
             address: parse6(address),
             port: port,
         };
-    } else {
-        return {
-            addressType: 'domainname',
-            address: Buffer.from(address),
-            port: port,
-        };
     }
+
+    return {
+        addressType: 'domainname',
+        address: Buffer.from(address),
+        port: port,
+    };
 };
 
 module.exports = {

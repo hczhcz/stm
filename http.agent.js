@@ -8,7 +8,7 @@ const accept = (
     let buffer = Buffer.alloc(0);
 
     let startLine = null;
-    let headers = [];
+    const headers = [];
 
     let piped = false;
 

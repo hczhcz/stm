@@ -12,7 +12,7 @@ for (let i = 2; i < process.argv.length; i += 1) {
     const passList = [];
 
     for (let j = 0; j < configList.length; j += 1) {
-        passList.push(require('./pass.' + configList[j][0]).apply(null, configList[j].slice(1)));
+        passList.push(require('./pass.' + configList[j][0])(...configList[j].slice(1)));
     }
 
     passList.push(passList[0]);

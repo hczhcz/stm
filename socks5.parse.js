@@ -1,9 +1,9 @@
 'use strict';
 
 const parseAuth = function *(
-    next  /*: () => Generator<void, void, number> */,
-    authError  /*: () => Generator<void, void, number> */,
-    parseError  /*: () => Generator<void, void, number> */
+    next /*: () => Generator<void, void, number> */,
+    authError /*: () => Generator<void, void, number> */,
+    parseError /*: () => Generator<void, void, number> */
 ) /*: Generator<void, void, number> */ {
     // version
 
