@@ -6,11 +6,19 @@ const dgram = require('dgram');
 
 const serialize = require('./serialize');
 
-module.exports = (fullResponse) => {
+module.exports = (
+    fullResponse /*: boolean */
+) /*: Pass */ => {
     const self = {
         next: null,
 
         open: (info, callback) => {
+            if (!self.next) {
+                // non-null assertion
+
+                throw Error();
+            }
+
             self.next(info, (send, close) => {
                 const sendJson = (json, chunk) => {
                     send(serialize.create(json, chunk));
@@ -34,6 +42,12 @@ module.exports = (fullResponse) => {
                             console.log(id + ' connect ' + json[1] + ' ' + json[2]);
 
                             socket = net.createConnection(json[2], json[1]).once('connect', () => {
+                                if (!socket) {
+                                    // non-null assertion
+
+                                    throw Error();
+                                }
+
                                 connected = true;
 
                                 if (fullResponse) {
@@ -44,6 +58,12 @@ module.exports = (fullResponse) => {
                             }).once('end', () => {
                                 sendJson(['end'], null);
                             }).once('error', (err) => {
+                                if (!socket) {
+                                    // non-null assertion
+
+                                    throw Error();
+                                }
+
                                 if (fullResponse && !connected && err.code) {
                                     sendJson(['open', socket.localAddress, socket.localPort, err.code], null);
                                 }
@@ -59,16 +79,34 @@ module.exports = (fullResponse) => {
                             tcpServer = net.createServer({
                                 allowHalfOpen: true,
                             }).once('listening', () => {
+                                if (!tcpServer) {
+                                    // non-null assertion
+
+                                    throw Error();
+                                }
+
                                 connected = true;
 
+                                const bind = tcpServer.address();
+
                                 // note: hack
-                                sendJson(['open', info.socket.localAddress, info.socket.localPort, null], null);
+                                if (info.socket) {
+                                    sendJson(['open', info.socket.localAddress, bind.port, null], null);
+                                } else {
+                                    sendJson(['open', bind.address, bind.port, null], null);
+                                }
                             }).once('connection', (remoteSocket) => {
                                 socket = remoteSocket.on('data', (dataChunk) => {
                                     sendJson(['data'], dataChunk);
                                 }).once('end', () => {
                                     sendJson(['end'], null);
                                 }).once('close', () => {
+                                    if (!tcpServer) {
+                                        // non-null assertion
+
+                                        throw Error();
+                                    }
+
                                     tcpServer.close();
                                     tcpServer = null;
                                 }).on('error', (err) => {
@@ -108,23 +146,36 @@ module.exports = (fullResponse) => {
                             }).on('error', (err) => {
                                 console.error(id + ' udp error');
                                 console.error(err);
-                            }).bind();
+                            });
+
+                            // note: not chained according to the official docs
+                            udpServer.bind();
 
                             break;
                         case 'message':
-                            udpServer.send(chunk, json[2], json[1]);
+                            if (udpServer) {
+                                udpServer.send(chunk, json[2], json[1]);
+                            } else {
+                                throw Error();
+                            }
 
                             break;
                         case 'data':
-                            socket.write(chunk);
+                            if (socket) {
+                                socket.write(chunk);
+                            } else {
+                                throw Error();
+                            }
 
                             break;
                         case 'end':
+                            if (socket) {
+                                socket.end();
+                            }
+
                             if (udpServer) {
                                 udpServer.close();
                                 udpServer = null;
-                            } else {
-                                socket.end();
                             }
 
                             break;

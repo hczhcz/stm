@@ -24,7 +24,10 @@ const socks5udp = require('./socks5.udp');
 // data() + chunk
 // end()
 
-module.exports = (listenPort, fullResponse) => {
+module.exports = (
+    listenPort /*: number */,
+    fullResponse /*: boolean */
+) /*: Pass */ => {
     const self = {
         next: null,
 
@@ -84,9 +87,18 @@ module.exports = (listenPort, fullResponse) => {
         socket.pause();
 
         const id = crypto.randomBytes(2).toString('hex');
-        const info = {
+        const info /*: any */ = {
             socket: socket,
+            udpAddress: null,
+            udpPort: null,
+            udpServer: null,
         };
+
+        if (!self.next) {
+            // non-null assertion
+
+            throw Error();
+        }
 
         self.next(info, (send, close) => {
             const sendJson = (json, chunk) => {
@@ -138,7 +150,10 @@ module.exports = (listenPort, fullResponse) => {
                     // console.error(id + ' socks5 udp step ' + step);
                 }).on('socks5.error', (step) => {
                     console.error(id + ' socks5 udp error ' + step);
-                }).bind();
+                });
+
+                // note: not chained according to the official docs
+                info.udpServer.bind();
 
                 socks5udp.init(info.udpServer);
             }).on('socks5client.data', (chunk) => {

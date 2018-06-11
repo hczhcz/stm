@@ -2,7 +2,9 @@
 
 const net = require('net');
 
-module.exports = (port) => {
+module.exports = (
+    port /*: number */
+) /*: Pass */ => {
     const self = {
         next: null,
 
@@ -27,6 +29,12 @@ module.exports = (port) => {
         const info = {
             socket: socket,
         };
+
+        if (!self.next) {
+            // non-null assertion
+
+            throw Error();
+        }
 
         self.next(info, (send, close) => {
             socket.on('data', (chunk) => {

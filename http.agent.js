@@ -2,11 +2,14 @@
 
 const url = require('url');
 
-const accept = (socket) => {
+const accept = (
+    socket /*: net$Socket */
+) /*: void */ => {
     let buffer = Buffer.alloc(0);
 
     let startLine = null;
     let headers = [];
+
     let piped = false;
 
     const establish = () => {
@@ -27,7 +30,7 @@ const accept = (socket) => {
         });
     };
 
-    const parseHeader = () => {
+    const parseHeader = (method, target, httpVersion) => {
         const index = buffer.indexOf('\r\n');
 
         if (index >= 0) {
@@ -39,19 +42,21 @@ const accept = (socket) => {
                 socket.emit('http.step', 'header');
 
                 // notice: how about 'OPTIONS' and 'TRACE'?
-                if (startLine[1] === 'CONNECT') {
-                    const address = url.parse('http://' + startLine[2]);
+                if (method === 'CONNECT') {
+                    const address = url.parse('http://' + target);
 
-                    socket.emit('httpclient.connect', address.hostname, address.port || 80);
+                    socket.emit('httpclient.connect', address.hostname, parseInt(address.port, 10) || 80);
 
-                    socket.write('HTTP/' + startLine[3] + ' 200 Connection Established\r\n\r\n');
+                    socket.write('HTTP/' + httpVersion + ' 200 Connection Established\r\n\r\n');
                 } else {
-                    const address = url.parse(startLine[2]);
+                    const address = url.parse(target);
 
-                    socket.emit('httpclient.request', address.hostname, address.port || 80);
+                    socket.emit('httpclient.request', address.hostname, parseInt(address.port, 10) || 80);
 
                     socket.emit('httpclient.data', Buffer.from(
-                        startLine[1] + ' ' + address.path + ' HTTP/' + startLine[3] + '\r\n'
+                        method
+                            + ' ' + (address.pathname || '/') + (address.search || '') + (address.hash || '')
+                            + ' HTTP/' + httpVersion + '\r\n'
                     ));
 
                     for (let i = 0; i < headers.length; i += 1) {
@@ -80,7 +85,7 @@ const accept = (socket) => {
                 if (headers.length) {
                     headers[headers.length - 1].push(line);
 
-                    parseHeader();
+                    parseHeader(method, target, httpVersion);
                 } else {
                     socket.emit('http.error', 'parse');
                     socket.end();
@@ -91,7 +96,7 @@ const accept = (socket) => {
                 if (header) {
                     headers.push([header[1], header[2]]);
 
-                    parseHeader();
+                    parseHeader(method, target, httpVersion);
                 } else {
                     socket.emit('http.error', 'parse');
                     socket.end();
@@ -113,7 +118,7 @@ const accept = (socket) => {
             if (startLine) {
                 socket.emit('http.step', 'startline');
 
-                parseHeader();
+                parseHeader(startLine[1], startLine[2], startLine[3]);
             } else {
                 socket.emit('http.error', 'parse');
                 socket.end();
@@ -127,7 +132,7 @@ const accept = (socket) => {
         if (piped) {
             // nothing, see function established()
         } else if (startLine) {
-            parseHeader();
+            parseHeader(startLine[1], startLine[2], startLine[3]);
         } else {
             parseStartLine();
         }

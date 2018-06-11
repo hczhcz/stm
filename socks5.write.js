@@ -1,6 +1,8 @@
 'use strict';
 
-const getAddressHeader = (task) => {
+const getAddressHeader = (
+    task /*: Task */
+) => {
     switch (task.addressType) {
         case 'ipv4':
             return Buffer.from([
@@ -21,7 +23,10 @@ const getAddressHeader = (task) => {
     }
 };
 
-const writeAuth = (socket, method) => {
+const writeAuth = (
+    socket /*: net$Socket */,
+    method /*: number */
+) => {
     // version: 5
     // method
 
@@ -31,7 +36,10 @@ const writeAuth = (socket, method) => {
     ]));
 };
 
-const writeReply = (socket, task) => {
+const writeReply = (
+    socket /*: net$Socket */,
+    task /*: Task */
+) => {
     // version: 5
     // reply: succeeded
     // reserved
@@ -53,7 +61,10 @@ const writeReply = (socket, task) => {
     ]));
 };
 
-const writeError = (socket, reply) => {
+const writeError = (
+    socket /*: net$Socket */,
+    reply /*: number */
+) => {
     // version: 5
     // reply
     // reserved
@@ -71,7 +82,10 @@ const writeError = (socket, reply) => {
     ]));
 };
 
-const writeErrorTCP = (socket, code) => {
+const writeErrorTCP = (
+    socket /*: net$Socket */,
+    code /*: string */
+) => {
     switch (code) {
         case 'ENETUNREACH':
             // reply: network unreachable
@@ -94,7 +108,13 @@ const writeErrorTCP = (socket, code) => {
     }
 };
 
-const writeUDP = (socket, address, port, task, msg) => {
+const writeUDP = (
+    socket /*: dgram$Socket */,
+    address /*: string */,
+    port /*: number */,
+    task /*: Task */,
+    msg /*: Buffer */
+) => {
     // reserved
     // fragment: 0
     // address type

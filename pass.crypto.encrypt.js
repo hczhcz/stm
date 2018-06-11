@@ -4,11 +4,22 @@ const crypto = require('crypto');
 
 const cryptoUtil = require('./crypto.util');
 
-module.exports = (algorithm, keyLength, ivLength, password) => {
+module.exports = (
+    algorithm /*: string */,
+    keyLength /*: number */,
+    ivLength /*: number */,
+    password /*: string */
+) /*: Pass */ => {
     const self = {
         next: null,
 
         open: (info, callback) => {
+            if (!self.next) {
+                // non-null assertion
+
+                throw Error();
+            }
+
             self.next(info, (send, close) => {
                 const nonceLength = Math.min(keyLength + ivLength, 32);
 
@@ -35,6 +46,7 @@ module.exports = (algorithm, keyLength, ivLength, password) => {
 
                     if (cipher.final().length) {
                         // note: should be flushed earlier
+
                         throw Error();
                     }
 

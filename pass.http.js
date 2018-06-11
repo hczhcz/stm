@@ -6,7 +6,9 @@ const net = require('net');
 const serialize = require('./serialize');
 const httpAgent = require('./http.agent');
 
-module.exports = (listenPort) => {
+module.exports = (
+    listenPort /*: number */
+) /*: Pass */ => {
     const self = {
         next: null,
 
@@ -46,6 +48,12 @@ module.exports = (listenPort) => {
         const info = {
             socket: socket,
         };
+
+        if (!self.next) {
+            // non-null assertion
+
+            throw Error();
+        }
 
         self.next(info, (send, close) => {
             const sendJson = (json, chunk) => {

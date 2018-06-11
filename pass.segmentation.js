@@ -2,11 +2,17 @@
 
 const serialize = require('./serialize');
 
-module.exports = () => {
+module.exports = () /*: Pass */ => {
     const self = {
         next: null,
 
         open: (info, callback) => {
+            if (!self.next) {
+                // non-null assertion
+
+                throw Error();
+            }
+
             self.next(info, (send, close) => {
                 let buffer = Buffer.alloc(0);
 

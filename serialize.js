@@ -1,6 +1,9 @@
 'use strict';
 
-const create = (json, chunk) => {
+const create = (
+    json /*: any */,
+    chunk /*: Buffer | null */
+) /*: Buffer */ => {
     const jsonData = Buffer.from(JSON.stringify(json));
     const chunkData = chunk || Buffer.alloc(0);
 
@@ -16,20 +19,26 @@ const create = (json, chunk) => {
     ]);
 };
 
-const getJson = (data) => {
+const getJson = (
+    data /*: Buffer */
+) /*: any */ => {
     const jsonSize = data.readUInt32BE(0);
 
     return JSON.parse(data.slice(8, 8 + jsonSize).toString());
 };
 
-const getChunk = (data) => {
+const getChunk = (
+    data /*: Buffer */
+) /*: Buffer */ => {
     const jsonSize = data.readUInt32BE(0);
     const chunkSize = data.readUInt32BE(4);
 
     return data.slice(8 + jsonSize, 8 + jsonSize + chunkSize);
 };
 
-const tryParse = (data) => {
+const tryParse = (
+    data /*: Buffer */
+) /*: number */ => {
     if (data.length >= 8) {
         const jsonSize = data.readUInt32BE(0);
         const chunkSize = data.readUInt32BE(4);

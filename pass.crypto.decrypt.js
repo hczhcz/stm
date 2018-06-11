@@ -2,17 +2,28 @@
 
 const cryptoUtil = require('./crypto.util');
 
-module.exports = (algorithm, keyLength, ivLength, password) => {
+module.exports = (
+    algorithm /*: string */,
+    keyLength /*: number */,
+    ivLength /*: number */,
+    password /*: string */
+) /*: Pass */ => {
     let nonceSet = {};
 
     const self = {
         next: null,
 
         open: (info, callback) => {
-            self.next(info, (send, close) => {
-                const nonceLength = Math.min(keyLength + ivLength, 32);
+            if (!self.next) {
+                // non-null assertion
 
+                throw Error();
+            }
+
+            self.next(info, (send, close) => {
                 let buffer = Buffer.alloc(0);
+
+                const nonceLength = Math.min(keyLength + ivLength, 32);
 
                 let nonce = null;
                 let decipher = null;
@@ -21,6 +32,12 @@ module.exports = (algorithm, keyLength, ivLength, password) => {
                 let failed = false;
 
                 const verify = () => {
+                    if (!nonce || !decipher) {
+                        // non-null assertion
+
+                        throw Error();
+                    }
+
                     if (buffer.length >= 8) {
                         const magic = buffer.readUInt32BE(0);
                         const timestamp = buffer.readUInt32BE(4);
@@ -68,12 +85,14 @@ module.exports = (algorithm, keyLength, ivLength, password) => {
                 callback((data) => {
                     // send
 
-                    if (verified) {
-                        send(decipher.update(data));
-                    } else if (decipher) {
-                        buffer = Buffer.concat([buffer, decipher.update(data)]);
+                    if (decipher) {
+                        if (verified) {
+                            send(decipher.update(data));
+                        } else {
+                            buffer = Buffer.concat([buffer, decipher.update(data)]);
 
-                        verify();
+                            verify();
+                        }
                     } else {
                         buffer = Buffer.concat([buffer, data]);
 
@@ -82,8 +101,9 @@ module.exports = (algorithm, keyLength, ivLength, password) => {
                 }, () => {
                     // close
 
-                    if (verified && decipher.final().length) {
+                    if (decipher && decipher.final().length) {
                         // note: should be flushed earlier
+
                         throw Error();
                     }
 

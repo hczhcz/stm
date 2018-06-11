@@ -2,11 +2,15 @@
 
 const net = require('net');
 
-const stringify4 = (task) => {
+const stringify4 = (
+    task /*: Task */
+) /*: string */ => {
     return task.address.join('.');
 };
 
-const stringify6 = (task) => {
+const stringify6 = (
+    task /*: Task */
+) /*: string */ => {
     const sections = [];
 
     for (let i = 0; i < 16; i += 2) {
@@ -21,7 +25,9 @@ const stringify6 = (task) => {
         .replace(/::::?/, '::');
 };
 
-const stringify = (task) => {
+const stringify = (
+    task /*: Task */
+) /*: string */ => {
     switch (task.addressType) {
         case 'ipv4':
             return stringify4(task);
@@ -35,25 +41,30 @@ const stringify = (task) => {
     }
 };
 
-const parse4 = (address) => {
+const parse4 = (
+    address /*: string */
+) /*: Buffer */ => {
     return Buffer.from(address.split('.', 4).map((value) => {
         return parseInt(value, 10);
     }));
 };
 
-const parse6 = (address) => {
+const parse6 = (
+    address /*: string */
+) /*: Buffer */ => {
     const sections = address.split(':', 8);
+    const buffers = [];
 
     let total = 0;
 
-    for (const i in sections) {
+    for (let i = 0; i < sections.length; i += 1) {
         if (net.isIPv4(sections[i])) {
-            sections[i] = parse4(sections[i]);
+            buffers[i] = parse4(sections[i]);
             total += 4;
         } else if (sections[i] !== '') {
             const value = parseInt(sections[i], 16);
 
-            sections[i] = Buffer.from([value >>> 8, value & 0xff]);
+            buffers[i] = Buffer.from([value >>> 8, value & 0xff]);
             total += 2;
         }
     }
@@ -62,33 +73,41 @@ const parse6 = (address) => {
 
     let position = 0;
 
-    for (const i in sections) {
-        if (sections[i] === '') {
+    for (let i = 0; i < buffers.length; i += 1) {
+        if (buffers[i] === '') {
             position += 16 - total;
             total = 16;
         } else {
-            position += sections[i].copy(result, position);
+            position += buffers[i].copy(result, position);
         }
     }
 
     return result;
 };
 
-const parse = (address) => {
-    const task = {};
-
+const parse = (
+    address /*: string */,
+    port /*: number */
+) /*: Task */ => {
     if (net.isIPv4(address)) {
-        task.addressType = 'ipv4';
-        task.address = parse4(address);
+        return {
+            addressType: 'ipv4',
+            address: parse4(address),
+            port: port,
+        };
     } else if (net.isIPv6(address)) {
-        task.addressType = 'ipv6';
-        task.address = parse6(address);
+        return {
+            addressType: 'ipv6',
+            address: parse6(address),
+            port: port,
+        };
     } else {
-        task.addressType = 'domainname';
-        task.address = Buffer.from(address);
+        return {
+            addressType: 'domainname',
+            address: Buffer.from(address),
+            port: port,
+        };
     }
-
-    return task;
 };
 
 module.exports = {

@@ -2,11 +2,20 @@
 
 const net = require('net');
 
-module.exports = (address, port) => {
+module.exports = (
+    address /*: string */,
+    port /*: number */
+) /*: Pass */ => {
     const self = {
         next: null,
 
         open: (info, callback) => {
+            if (!self.next) {
+                // non-null assertion
+
+                throw Error();
+            }
+
             self.next(info, (send, close) => {
                 const socket = net.createConnection(port, address);
 

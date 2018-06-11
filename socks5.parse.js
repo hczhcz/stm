@@ -1,6 +1,10 @@
 'use strict';
 
-const parseAuth = function *(socket, next, authError, parseError) {
+const parseAuth = function *(
+    next  /*: () => Generator<void, void, number> */,
+    authError  /*: () => Generator<void, void, number> */,
+    parseError  /*: () => Generator<void, void, number> */
+) /*: Generator<void, void, number> */ {
     // version
 
     if ((yield) !== 0x05) {
@@ -27,7 +31,12 @@ const parseAuth = function *(socket, next, authError, parseError) {
     }
 };
 
-const parseRequest = function *(socket, next, commandError, addressError, parseError) {
+const parseRequest = function *(
+    next /*: (task: Task) => Generator<void, void, number> */,
+    commandError /*: () => Generator<void, void, number> */,
+    addressError /*: () => Generator<void, void, number> */,
+    parseError /*: () => Generator<void, void, number> */
+) /*: Generator<void, void, number> */ {
     // version
 
     if ((yield) !== 0x05) {
@@ -104,7 +113,12 @@ const parseRequest = function *(socket, next, commandError, addressError, parseE
     yield *next(task);
 };
 
-const parseUDP = function *(socket, next, fragmentError, addressError, parseError) {
+const parseUDP = function *(
+    next /*: (task: Task) => Generator<void, void, number> */,
+    fragmentError /*: () => Generator<void, void, number> */,
+    addressError /*: () => Generator<void, void, number> */,
+    parseError /*: () => Generator<void, void, number> */
+) /*: Generator<void, void, number> */ {
     // reserved
 
     if ((yield) !== 0x00 || (yield) !== 0x00) {

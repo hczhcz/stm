@@ -2,11 +2,19 @@
 
 const zlib = require('zlib');
 
-module.exports = (level) => {
+module.exports = (
+    level /*: number */
+) /*: Pass */ => {
     const self = {
         next: null,
 
         open: (info, callback) => {
+            if (!self.next) {
+                // non-null assertion
+
+                throw Error();
+            }
+
             self.next(info, (send, close) => {
                 const deflate = zlib.createDeflateRaw({
                     flush: zlib.constants.Z_SYNC_FLUSH,

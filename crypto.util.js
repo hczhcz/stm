@@ -2,16 +2,25 @@
 
 const crypto = require('crypto');
 
-const hash256 = (data, nonce) => {
+const hash256 = (
+    str /*: string */,
+    nonce /*: Buffer */
+) /*: Buffer */ => {
     const hash = crypto.createHash('sha256');
 
-    hash.update(data);
+    hash.update(str);
     hash.update(nonce);
 
     return hash.digest();
 };
 
-const encryptInit = (algorithm, keyLength, ivLength, password, nonce) => {
+const encryptInit = (
+    algorithm /*: string */,
+    keyLength /*: number */,
+    ivLength /*: number */,
+    password /*: string */,
+    nonce /*: Buffer */
+) /*: crypto$Cipher */ => {
     return crypto.createCipheriv(
         algorithm,
         hash256(password, nonce).slice(0, keyLength),
@@ -19,7 +28,13 @@ const encryptInit = (algorithm, keyLength, ivLength, password, nonce) => {
     );
 };
 
-const decryptInit = (algorithm, keyLength, ivLength, password, nonce) => {
+const decryptInit = (
+    algorithm /*: string */,
+    keyLength /*: number */,
+    ivLength /*: number */,
+    password /*: string */,
+    nonce /*: Buffer */
+) /*: crypto$Decipher */ => {
     return crypto.createDecipheriv(
         algorithm,
         hash256(password, nonce).slice(0, keyLength),

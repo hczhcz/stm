@@ -4,7 +4,9 @@ const socks5address = require('./socks5.address');
 const socks5parse = require('./socks5.parse');
 const socks5write = require('./socks5.write');
 
-const accept = (socket) => {
+const accept = (
+    socket /*: net$Socket */
+) /*: void */ => {
     let parseDone = false;
 
     const handleClose = function *() {
@@ -21,9 +23,7 @@ const accept = (socket) => {
                 socks5write.writeErrorTCP(socket, code);
                 socket.end();
             } else {
-                const task = socks5address.parse(address);
-
-                task.port = port;
+                const task = socks5address.parse(address, port);
 
                 socks5write.writeReply(socket, task);
 
@@ -34,7 +34,6 @@ const accept = (socket) => {
 
     const handleRequest = () => {
         return socks5parse.parseRequest(
-            socket,
             (task) => {
                 // next
 
@@ -122,7 +121,6 @@ const accept = (socket) => {
 
     const handleAuth = () => {
         return socks5parse.parseAuth(
-            socket,
             () => {
                 // next
 

@@ -4,7 +4,9 @@ const socks5address = require('./socks5.address');
 const socks5parse = require('./socks5.parse');
 const socks5write = require('./socks5.write');
 
-const init = (socket) => {
+const init = (
+    socket /*: dgram$Socket */
+) => {
     socket.on('message', (msg, address) => {
         let parseDone = false;
         let i = 0;
@@ -13,7 +15,6 @@ const init = (socket) => {
         };
 
         const handler = socks5parse.parseUDP(
-            socket,
             (task) => {
                 // next
 
@@ -56,9 +57,7 @@ const init = (socket) => {
             }
         }
     }).on('socks5server.message', (localAddress, localPort, remoteAddress, remotePort, msg) => {
-        const task = socks5address.parse(remoteAddress);
-
-        task.port = remotePort;
+        const task = socks5address.parse(remoteAddress, remotePort);
 
         socks5write.writeUDP(socket, localAddress, localPort, task, msg);
     });
