@@ -20,9 +20,7 @@ module.exports = (
                     flush: zlib.constants.Z_SYNC_FLUSH,
                     finishFlush: zlib.constants.Z_SYNC_FLUSH,
                     level: level,
-                });
-
-                deflate.on('data', (chunk) => {
+                }).on('data', (chunk) => {
                     send(chunk);
                 });
 

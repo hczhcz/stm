@@ -17,9 +17,11 @@ module.exports = (
             }
 
             self.next(info, (send, close) => {
-                const socket = net.createConnection(port, address);
-
-                socket.once('connect', () => {
+                const socket = net.createConnection({
+                    host: address,
+                    port: port,
+                    allowHalfOpen: true,
+                }).once('connect', () => {
                     callback((data) => {
                         // send
 

@@ -41,7 +41,11 @@ module.exports = (
                         case 'connect':
                             console.log(id + ' connect ' + json[1] + ' ' + json[2]);
 
-                            socket = net.createConnection(json[2], json[1]).once('connect', () => {
+                            socket = net.createConnection({
+                                host: json[1],
+                                port: json[2],
+                                allowHalfOpen: true,
+                            }).once('connect', () => {
                                 if (!socket) {
                                     // non-null assertion
 

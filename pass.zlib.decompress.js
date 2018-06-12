@@ -17,9 +17,7 @@ module.exports = () /*: Pass */ => {
                 const inflate = zlib.createInflateRaw({
                     flush: zlib.constants.Z_SYNC_FLUSH,
                     finishFlush: zlib.constants.Z_SYNC_FLUSH,
-                });
-
-                inflate.on('data', (chunk) => {
+                }).on('data', (chunk) => {
                     send(chunk);
                 });
 
