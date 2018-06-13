@@ -3,6 +3,7 @@
 const crypto = require('crypto');
 const net = require('net');
 
+const config = require('./config');
 const serialize = require('./serialize');
 const httpAgent = require('./http.agent');
 
@@ -64,7 +65,10 @@ module.exports = (
 
             socket.on('error', (err) => {
                 console.error(id + ' tcp error');
-                console.error(err);
+
+                if (config.log.network) {
+                    console.error(err);
+                }
             }).once('httpclient.request', (address, port) => {
                 console.log(id + ' http request ' + address + ' ' + port);
 
@@ -74,20 +78,37 @@ module.exports = (
 
                 sendJson(['connect', address, port], null);
             }).on('httpclient.data', (chunk) => {
+                if (config.log.transfer) {
+                    console.error(id + ' http data');
+                }
+
                 sendJson(['data'], chunk);
             }).on('httpclient.end', () => {
+                if (config.log.transfer) {
+                    console.error(id + ' http end');
+                }
+
                 sendJson(['end'], null);
             }).on('httpclient.close', () => {
+                if (config.log.transfer) {
+                    console.error(id + ' http close');
+                }
+
                 close();
             }).on('http.step', (step) => {
-                // console.error(id + ' http step ' + step);
+                if (config.log.step) {
+                    console.error(id + ' http step ' + step);
+                }
             }).on('http.error', (step) => {
                 console.error(id + ' http error ' + step);
             }).resume();
         });
     }).on('error', (err) => {
         console.error('tcp server error');
-        console.error(err);
+
+        if (config.log.network) {
+            console.error(err);
+        }
     }).listen(listenPort);
 
     return self;

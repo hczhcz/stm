@@ -4,7 +4,24 @@ const crypto = require('crypto');
 const net = require('net');
 const dgram = require('dgram');
 
+const config = require('./config');
 const serialize = require('./serialize');
+
+// send:
+// connect(address, port)
+// bind()
+// udpassociate()
+// message(address, port) + msg
+// data() + chunk
+// end()
+
+// reply:
+// open(address, port, code)
+// connection(address, port, code)
+// udpassociate(code)
+// message(address, port) + msg
+// data() + chunk
+// end()
 
 module.exports = (
     fullResponse /*: boolean */
@@ -73,7 +90,10 @@ module.exports = (
                                 }
                             }).on('error', (err) => {
                                 console.error(id + ' tcp error');
-                                console.error(err);
+
+                                if (config.log.network) {
+                                    console.error(err);
+                                }
                             });
 
                             break;
@@ -115,7 +135,10 @@ module.exports = (
                                     tcpServer = null;
                                 }).on('error', (err) => {
                                     console.error(id + ' tcp error');
-                                    console.error(err);
+
+                                    if (config.log.network) {
+                                        console.error(err);
+                                    }
                                 });
 
                                 sendJson(['connection', remoteSocket.remoteAddress, remoteSocket.remotePort, null], null);
@@ -126,7 +149,10 @@ module.exports = (
                                 }
                             }).on('error', (err) => {
                                 console.error(id + ' tcp server error');
-                                console.error(err);
+
+                                if (config.log.network) {
+                                    console.error(err);
+                                }
                             }).listen();
 
                             break;
@@ -149,7 +175,10 @@ module.exports = (
                                 }
                             }).on('error', (err) => {
                                 console.error(id + ' udp error');
-                                console.error(err);
+
+                                if (config.log.network) {
+                                    console.error(err);
+                                }
                             });
 
                             // note: not chained according to the official docs

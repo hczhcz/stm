@@ -44,4 +44,10 @@ module.exports = {
         '-m': ['string', 'Encrypt method', 'aes-256-cfb'],
         '-k': ['string', 'Encrypt password'],
     },
+
+    log: {
+        step: false,
+        transfer: false,
+        network: false,
+    },
 };

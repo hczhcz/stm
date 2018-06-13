@@ -4,25 +4,10 @@ const crypto = require('crypto');
 const net = require('net');
 const dgram = require('dgram');
 
+const config = require('./config');
 const serialize = require('./serialize');
 const socks5 = require('./socks5');
 const socks5udp = require('./socks5.udp');
-
-// send:
-// connect(address, port)
-// bind()
-// udpassociate()
-// message(address, port) + msg
-// data() + chunk
-// end()
-
-// reply:
-// open(address, port, code)
-// connection(address, port, code)
-// udpassociate(code)
-// message(address, port) + msg
-// data() + chunk
-// end()
 
 module.exports = (
     listenPort /*: number */,
@@ -109,7 +94,10 @@ module.exports = (
 
             socket.on('error', (err) => {
                 console.error(id + ' tcp error');
-                console.error(err);
+
+                if (config.log.network) {
+                    console.error(err);
+                }
             }).once('socks5client.connect', (address, port) => {
                 console.log(id + ' socks5 connect ' + address + ' ' + port);
 
@@ -141,13 +129,20 @@ module.exports = (
                     }
                 }).on('error', (err) => {
                     console.error(id + ' udp error');
-                    console.error(err);
+
+                    if (config.log.network) {
+                        console.error(err);
+                    }
                 }).on('socks5client.message', (localAddress, localPort, remoteAddress, remotePort, msg) => {
-                    // console.error(id + ' socks5 message');
+                    if (config.log.transfer) {
+                        console.error(id + ' socks5 message');
+                    }
 
                     sendJson(['message', remoteAddress, remotePort], msg);
                 }).on('socks5.step', (step) => {
-                    // console.error(id + ' socks5 udp step ' + step);
+                    if (config.log.step) {
+                        console.error(id + ' socks5 udp step ' + step);
+                    }
                 }).on('socks5.error', (step) => {
                     console.error(id + ' socks5 udp error ' + step);
                 });
@@ -157,11 +152,15 @@ module.exports = (
 
                 socks5udp.init(info.udpServer);
             }).on('socks5client.data', (chunk) => {
-                // console.error(id + ' socks5 data');
+                if (config.log.transfer) {
+                    console.error(id + ' socks5 data');
+                }
 
                 sendJson(['data'], chunk);
             }).once('socks5client.end', () => {
-                // console.error(id + ' socks5 end');
+                if (config.log.transfer) {
+                    console.error(id + ' socks5 end');
+                }
 
                 if (info.udpServer) {
                     info.udpServer.close();
@@ -170,18 +169,25 @@ module.exports = (
 
                 sendJson(['end'], null);
             }).once('socks5client.close', () => {
-                // console.error(id + ' socks5 close');
+                if (config.log.transfer) {
+                    console.error(id + ' socks5 close');
+                }
 
                 close();
             }).on('socks5.step', (step) => {
-                // console.error(id + ' socks5 tcp step ' + step);
+                if (config.log.step) {
+                    console.error(id + ' socks5 tcp step ' + step);
+                }
             }).on('socks5.error', (step) => {
                 console.error(id + ' socks5 tcp error ' + step);
             }).resume();
         });
     }).on('error', (err) => {
         console.error('tcp server error');
-        console.error(err);
+
+        if (config.log.network) {
+            console.error(err);
+        }
     }).listen(listenPort);
 
     return self;
