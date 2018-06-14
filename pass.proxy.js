@@ -145,7 +145,11 @@ module.exports = (
                             }).once('error', (err) => {
                                 if (!connected && err.code) {
                                     // note: hack
-                                    sendJson(['open', info.socket.localAddress, info.socket.localPort, err.code], null);
+                                    if (info.socket) {
+                                        sendJson(['open', info.socket.localAddress, bind.port, err.code], null);
+                                    } else {
+                                        sendJson(['open', bind.address, bind.port, err.code], null);
+                                    }
                                 }
                             }).on('error', (err) => {
                                 console.error(id + ' tcp server error');
