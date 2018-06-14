@@ -3,6 +3,8 @@
 const crypto = require('crypto');
 const net = require('net');
 
+const config = require('./config');
+
 module.exports = (
     port /*: number */
 ) /*: Pass */ => {
@@ -43,8 +45,20 @@ module.exports = (
                 send(chunk);
             }).once('close', () => {
                 close();
+            }).on('error', (err) => {
+                console.error(info.id + ' tcp error');
+
+                if (config.log.network) {
+                    console.error(err);
+                }
             }).resume();
         });
+    }).on('error', (err) => {
+        console.error('tcp server error');
+
+        if (config.log.network) {
+            console.error(err);
+        }
     }).listen(port);
 
     return self;

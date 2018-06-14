@@ -2,6 +2,8 @@
 
 const net = require('net');
 
+const config = require('./config');
+
 module.exports = (
     address /*: string */,
     port /*: number */
@@ -35,6 +37,12 @@ module.exports = (
                     send(chunk);
                 }).once('close', () => {
                     close();
+                }).on('error', (err) => {
+                    console.error(info.id + ' tcp error');
+
+                    if (config.log.network) {
+                        console.error(err);
+                    }
                 });
             });
         },
