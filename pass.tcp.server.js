@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const net = require('net');
 
 module.exports = (
@@ -27,6 +28,7 @@ module.exports = (
         socket.pause();
 
         const info = {
+            id: crypto.randomBytes(2).toString('hex'),
             socket: socket,
         };
 

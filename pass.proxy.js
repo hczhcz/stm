@@ -1,6 +1,5 @@
 'use strict';
 
-const crypto = require('crypto');
 const net = require('net');
 const dgram = require('dgram');
 
@@ -41,8 +40,6 @@ module.exports = (
                     send(serialize.create(json, chunk));
                 };
 
-                const id = crypto.randomBytes(2).toString('hex');
-
                 let socket = null;
                 let tcpServer = null;
                 let udpServer = null;
@@ -56,7 +53,7 @@ module.exports = (
 
                     switch (json[0]) {
                         case 'connect':
-                            console.log(id + ' connect ' + json[1] + ' ' + json[2]);
+                            console.log(info.id + ' connect ' + json[1] + ' ' + json[2]);
 
                             socket = net.createConnection({
                                 host: json[1],
@@ -89,7 +86,7 @@ module.exports = (
                                     sendJson(['open', socket.localAddress, socket.localPort, err.code], null);
                                 }
                             }).on('error', (err) => {
-                                console.error(id + ' tcp error');
+                                console.error(info.id + ' tcp error');
 
                                 if (config.log.network) {
                                     console.error(err);
@@ -98,7 +95,7 @@ module.exports = (
 
                             break;
                         case 'bind':
-                            console.log(id + ' bind');
+                            console.log(info.id + ' bind');
 
                             tcpServer = net.createServer({
                                 allowHalfOpen: true,
@@ -134,7 +131,7 @@ module.exports = (
                                     tcpServer.close();
                                     tcpServer = null;
                                 }).on('error', (err) => {
-                                    console.error(id + ' tcp error');
+                                    console.error(info.id + ' tcp error');
 
                                     if (config.log.network) {
                                         console.error(err);
@@ -143,7 +140,15 @@ module.exports = (
 
                                 sendJson(['connection', remoteSocket.remoteAddress, remoteSocket.remotePort, null], null);
                             }).once('error', (err) => {
+                                if (!tcpServer) {
+                                    // non-null assertion
+
+                                    throw Error();
+                                }
+
                                 if (!connected && err.code) {
+                                    const bind = tcpServer.address();
+
                                     // note: hack
                                     if (info.socket) {
                                         sendJson(['open', info.socket.localAddress, bind.port, err.code], null);
@@ -152,7 +157,7 @@ module.exports = (
                                     }
                                 }
                             }).on('error', (err) => {
-                                console.error(id + ' tcp server error');
+                                console.error(info.id + ' tcp server error');
 
                                 if (config.log.network) {
                                     console.error(err);
@@ -161,7 +166,7 @@ module.exports = (
 
                             break;
                         case 'udpassociate':
-                            console.log(id + ' udpassociate');
+                            console.log(info.id + ' udpassociate');
 
                             udpServer = dgram.createSocket({
                                 type: 'udp6',
@@ -178,7 +183,7 @@ module.exports = (
                                     sendJson(['udpassociate', err.code], null);
                                 }
                             }).on('error', (err) => {
-                                console.error(id + ' udp error');
+                                console.error(info.id + ' udp error');
 
                                 if (config.log.network) {
                                     console.error(err);
