@@ -27,18 +27,18 @@ module.exports = (
     net.createServer({
         allowHalfOpen: true,
     }).on('connection', (socket) => {
+        if (!self.next) {
+            // non-null assertion
+
+            throw Error();
+        }
+
         socket.pause();
 
         const info = {
             id: crypto.randomBytes(2).toString('hex'),
             socket: socket,
         };
-
-        if (!self.next) {
-            // non-null assertion
-
-            throw Error();
-        }
 
         self.next(info, (send, close) => {
             socket.on('data', (chunk) => {

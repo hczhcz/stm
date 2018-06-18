@@ -108,7 +108,6 @@ module.exports = (
 
                     const bind = tcpServer.address();
 
-                    // note: hack
                     if (info.socket) {
                         sendJson([
                             'open',
@@ -166,7 +165,6 @@ module.exports = (
                     if (!connected && err.code) {
                         const bind = tcpServer.address();
 
-                        // note: hack
                         if (info.socket) {
                             sendJson([
                                 'open',

@@ -43,18 +43,18 @@ module.exports = (
     net.createServer({
         allowHalfOpen: true,
     }).on('connection', (socket) => {
+        if (!self.next) {
+            // non-null assertion
+
+            throw Error();
+        }
+
         socket.pause();
 
         const id = crypto.randomBytes(2).toString('hex');
         const info = {
             socket: socket,
         };
-
-        if (!self.next) {
-            // non-null assertion
-
-            throw Error();
-        }
 
         self.next(info, (send, close) => {
             const sendJson = (json, chunk) => {

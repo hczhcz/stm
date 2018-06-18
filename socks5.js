@@ -47,9 +47,7 @@ const accept = (
             socket.end();
         }).once('socks5server.close', () => {
             socket.destroy();
-        });
-
-        socket.resume();
+        }).resume();
     };
 
     const connect = (task) => {
