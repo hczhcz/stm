@@ -44,7 +44,9 @@ const stringify = (
 const parse4 = (
     address /*: string */
 ) /*: Buffer */ => {
-    return Buffer.from(address.split('.', 4).map((value) => {
+    const sections = address.split('.', 4);
+
+    return Buffer.from(sections.map((value) => {
         return parseInt(value, 10);
     }));
 };

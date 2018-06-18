@@ -30,6 +30,67 @@ const accept = (
         });
     };
 
+    const connect = (target, httpVersion) => {
+        const address = url.parse('http://' + target);
+
+        socket.emit(
+            'httpclient.connect',
+            address.hostname,
+            parseInt(address.port, 10) || 80
+        );
+
+        socket.write(
+            'HTTP/' + httpVersion
+                + ' 200 Connection Established\r\n\r\n'
+        );
+    };
+
+    const request = (method, target, httpVersion) => {
+        const address = url.parse(target);
+
+        socket.emit(
+            'httpclient.request',
+            address.hostname,
+            parseInt(address.port, 10) || 80
+        );
+
+        socket.emit(
+            'httpclient.data',
+            Buffer.from(
+                method
+                    + ' ' + (address.pathname || '/')
+                    + (address.search || '')
+                    + (address.hash || '')
+                    + ' HTTP/' + httpVersion + '\r\n'
+            )
+        );
+
+        for (let i = 0; i < headers.length; i += 1) {
+            socket.emit(
+                'httpclient.data',
+                Buffer.from(
+                    headers[i][0] + ':' + headers[i][1] + '\r\n'
+                )
+            );
+
+            for (let j = 2; j < headers[i].length; j += 1) {
+                socket.emit(
+                    'httpclient.data',
+                    Buffer.from(
+                        headers[i][j] + '\r\n'
+                    )
+                );
+            }
+        }
+
+        socket.emit(
+            'httpclient.data',
+            Buffer.from(
+                '\r\n'
+            )
+        );
+    };
+
     const parseHeader = (method, target, httpVersion) => {
         const index = buffer.indexOf('\r\n');
 
@@ -43,62 +104,9 @@ const accept = (
 
                 // notice: how about 'OPTIONS' and 'TRACE'?
                 if (method === 'CONNECT') {
-                    const address = url.parse('http://' + target);
-
-                    socket.emit(
-                        'httpclient.connect',
-                        address.hostname,
-                        parseInt(address.port, 10) || 80
-                    );
-
-                    socket.write(
-                        'HTTP/' + httpVersion
-                            + ' 200 Connection Established\r\n\r\n'
-                    );
+                    connect(target, httpVersion);
                 } else {
-                    const address = url.parse(target);
-
-                    socket.emit(
-                        'httpclient.request',
-                        address.hostname,
-                        parseInt(address.port, 10) || 80
-                    );
-
-                    socket.emit(
-                        'httpclient.data',
-                        Buffer.from(
-                            method
-                                + ' ' + (address.pathname || '/')
-                                + (address.search || '')
-                                + (address.hash || '')
-                                + ' HTTP/' + httpVersion + '\r\n'
-                        )
-                    );
-
-                    for (let i = 0; i < headers.length; i += 1) {
-                        socket.emit(
-                            'httpclient.data',
-                            Buffer.from(
-                                headers[i][0] + ':' + headers[i][1] + '\r\n'
-                            )
-                        );
-
-                        for (let j = 2; j < headers[i].length; j += 1) {
-                            socket.emit(
-                                'httpclient.data',
-                                Buffer.from(
-                                    headers[i][j] + '\r\n'
-                                )
-                            );
-                        }
-                    }
-
-                    socket.emit(
-                        'httpclient.data',
-                        Buffer.from(
-                            '\r\n'
-                        )
-                    );
+                    request(method, target, httpVersion);
                 }
 
                 if (buffer.length) {

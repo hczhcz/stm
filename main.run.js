@@ -27,7 +27,9 @@ const runMode = (
 
                     argList.push(args[configList[i][j]]);
                 } else {
-                    console.error('missing arg ' + configList[i][j]);
+                    console.error(
+                        'missing arg ' + configList[i][j]
+                    );
 
                     return;
                 }
