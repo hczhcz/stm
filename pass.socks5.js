@@ -27,28 +27,55 @@ module.exports = (
 
                 switch (json[0]) {
                     case 'open':
-                        info.socket.emit('socks5server.open', json[1], json[2], json[3]);
+                        info.socket.emit(
+                            'socks5server.open',
+                            json[1],
+                            json[2],
+                            json[3]
+                        );
 
                         break;
                     case 'connection':
-                        info.socket.emit('socks5server.connection', json[1], json[2], json[3]);
+                        info.socket.emit(
+                            'socks5server.connection',
+                            json[1],
+                            json[2],
+                            json[3]
+                        );
 
                         break;
                     case 'udpassociate':
                         bind = info.udpBind.address();
-                        info.socket.emit('socks5server.udpassociate', bind.address, bind.port, json[1]);
+                        info.socket.emit(
+                            'socks5server.udpassociate',
+                            bind.address,
+                            bind.port,
+                            json[1]
+                        );
 
                         break;
                     case 'message':
-                        info.udpBind.emit('socks5server.message', info.udpAddress, info.udpPort, json[1], json[2], chunk);
+                        info.udpBind.emit(
+                            'socks5server.message',
+                            info.udpAddress,
+                            info.udpPort,
+                            json[1],
+                            json[2],
+                            chunk
+                        );
 
                         break;
                     case 'data':
-                        info.socket.emit('socks5server.data', chunk);
+                        info.socket.emit(
+                            'socks5server.data',
+                            chunk
+                        );
 
                         break;
                     case 'end':
-                        info.socket.emit('socks5server.end');
+                        info.socket.emit(
+                            'socks5server.end'
+                        );
 
                         break;
                     default:
@@ -57,7 +84,9 @@ module.exports = (
             }, () => {
                 // close
 
-                info.socket.emit('socks5server.close');
+                info.socket.emit(
+                    'socks5server.close'
+                );
 
                 if (info.udpBind) {
                     info.udpBind.close();
@@ -99,21 +128,32 @@ module.exports = (
                     console.error(err);
                 }
             }).once('socks5client.connect', (address, port) => {
-                console.log(info.id + ' socks5 connect ' + address + ' ' + port);
+                console.log(
+                    info.id + ' socks5 connect ' + address + ' ' + port
+                );
 
                 sendJson(['connect', address, port], null);
 
                 process.nextTick(() => {
                     if (!fullResponse) {
-                        socket.emit('socks5server.open', '0.0.0.0', 0, null);
+                        socket.emit(
+                            'socks5server.open',
+                            '0.0.0.0',
+                            0,
+                            null
+                        );
                     }
                 });
             }).once('socks5client.bind', (address, port) => {
-                console.log(info.id + ' socks5 bind ' + address + ' ' + port);
+                console.log(
+                    info.id + ' socks5 bind ' + address + ' ' + port
+                );
 
                 sendJson(['bind'], null);
             }).once('socks5client.udpassociate', (address, port) => {
-                console.log(info.id + ' socks5 udpassociate ' + address + ' ' + port);
+                console.log(
+                    info.id + ' socks5 udpassociate ' + address + ' ' + port
+                );
 
                 info.udpAddress = address;
                 info.udpPort = port;
@@ -125,7 +165,12 @@ module.exports = (
                     if (!fullResponse) {
                         const bind = info.udpBind.address();
 
-                        socket.emit('socks5server.udpassociate', bind.address, bind.port, null);
+                        socket.emit(
+                            'socks5server.udpassociate',
+                            bind.address,
+                            bind.port,
+                            null
+                        );
                     }
                 }).on('error', (err) => {
                     console.error(info.id + ' udp error');
@@ -133,7 +178,13 @@ module.exports = (
                     if (config.log.network) {
                         console.error(err);
                     }
-                }).on('socks5client.message', (localAddress, localPort, remoteAddress, remotePort, msg) => {
+                }).on('socks5client.message', (
+                    localAddress,
+                    localPort,
+                    remoteAddress,
+                    remotePort,
+                    msg
+                ) => {
                     if (config.log.transfer) {
                         console.error(info.id + ' socks5 message');
                     }

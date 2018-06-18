@@ -63,23 +63,47 @@ const accept = (
 
                 switch (task.command) {
                     case 'connect':
-                        socket.once('socks5server.open', waitAddress(() => {
-                            establish();
-                        })).emit('socks5client.connect', socks5address.stringify(task), task.port);
+                        socket.once(
+                            'socks5server.open',
+                            waitAddress(() => {
+                                establish();
+                            })
+                        ).emit(
+                            'socks5client.connect',
+                            socks5address.stringify(task),
+                            task.port
+                        );
 
                         break;
                     case 'bind':
-                        socket.once('socks5server.open', waitAddress(() => {
-                            socket.once('socks5server.connection', waitAddress(() => {
-                                establish();
-                            }));
-                        })).emit('socks5client.bind', socks5address.stringify(task), task.port);
+                        socket.once(
+                            'socks5server.open',
+                            waitAddress(() => {
+                                socket.once(
+                                    'socks5server.connection',
+                                    waitAddress(() => {
+                                        establish();
+                                    })
+                                );
+                            })
+                        ).emit(
+                            'socks5client.bind',
+                            socks5address.stringify(task),
+                            task.port
+                        );
 
                         break;
                     case 'udpassociate':
-                        socket.once('socks5server.udpassociate', waitAddress(() => {
-                            establish();
-                        })).emit('socks5client.udpassociate', socks5address.stringify(task), task.port);
+                        socket.once(
+                            'socks5server.udpassociate',
+                            waitAddress(() => {
+                                establish();
+                            })
+                        ).emit(
+                            'socks5client.udpassociate',
+                            socks5address.stringify(task),
+                            task.port
+                        );
 
                         break;
                     default:

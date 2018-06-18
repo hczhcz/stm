@@ -15,9 +15,15 @@ const runMode = (
         const argList = [];
 
         for (let j = 1; j < configList[i].length; j += 1) {
-            if (typeof configList[i][j] === 'string' && configList[i][j][0] === '-') {
+            if (
+                typeof configList[i][j] === 'string'
+                && configList[i][j][0] === '-'
+            ) {
                 if (args[configList[i][j]]) {
-                    console.log('arg ' + configList[i][j] + ' ' + args[configList[i][j]]);
+                    console.log(
+                        'arg ' + configList[i][j]
+                            + ' ' + args[configList[i][j]]
+                    );
 
                     argList.push(args[configList[i][j]]);
                 } else {

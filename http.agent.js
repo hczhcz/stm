@@ -45,33 +45,60 @@ const accept = (
                 if (method === 'CONNECT') {
                     const address = url.parse('http://' + target);
 
-                    socket.emit('httpclient.connect', address.hostname, parseInt(address.port, 10) || 80);
+                    socket.emit(
+                        'httpclient.connect',
+                        address.hostname,
+                        parseInt(address.port, 10) || 80
+                    );
 
-                    socket.write('HTTP/' + httpVersion + ' 200 Connection Established\r\n\r\n');
+                    socket.write(
+                        'HTTP/' + httpVersion
+                            + ' 200 Connection Established\r\n\r\n'
+                    );
                 } else {
                     const address = url.parse(target);
 
-                    socket.emit('httpclient.request', address.hostname, parseInt(address.port, 10) || 80);
+                    socket.emit(
+                        'httpclient.request',
+                        address.hostname,
+                        parseInt(address.port, 10) || 80
+                    );
 
-                    socket.emit('httpclient.data', Buffer.from(
-                        method
-                            + ' ' + (address.pathname || '/') + (address.search || '') + (address.hash || '')
-                            + ' HTTP/' + httpVersion + '\r\n'
-                    ));
+                    socket.emit(
+                        'httpclient.data',
+                        Buffer.from(
+                            method
+                                + ' ' + (address.pathname || '/')
+                                + (address.search || '')
+                                + (address.hash || '')
+                                + ' HTTP/' + httpVersion + '\r\n'
+                        )
+                    );
 
                     for (let i = 0; i < headers.length; i += 1) {
-                        socket.emit('httpclient.data', Buffer.from(
-                            headers[i][0] + ':' + headers[i][1] + '\r\n'
-                        ));
+                        socket.emit(
+                            'httpclient.data',
+                            Buffer.from(
+                                headers[i][0] + ':' + headers[i][1] + '\r\n'
+                            )
+                        );
 
                         for (let j = 2; j < headers[i].length; j += 1) {
-                            socket.emit('httpclient.data', Buffer.from(
-                                headers[i][j] + '\r\n'
-                            ));
+                            socket.emit(
+                                'httpclient.data',
+                                Buffer.from(
+                                    headers[i][j] + '\r\n'
+                                )
+                            );
                         }
                     }
 
-                    socket.emit('httpclient.data', Buffer.from('\r\n'));
+                    socket.emit(
+                        'httpclient.data',
+                        Buffer.from(
+                            '\r\n'
+                        )
+                    );
                 }
 
                 if (buffer.length) {
@@ -111,7 +138,9 @@ const accept = (
         if (index >= 0) {
             const line = buffer.slice(0, index).toString();
 
-            startLine = line.match(/^([^ \t\r\n]+) ([^ \t\r\n]+) HTTP\/([\d.]+)$/);
+            startLine = line.match(
+                /^([^ \t\r\n]+) ([^ \t\r\n]+) HTTP\/([\d.]+)$/
+            );
 
             buffer = buffer.slice(index + 2);
 

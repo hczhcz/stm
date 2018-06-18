@@ -74,7 +74,13 @@ module.exports = (
                 const parse = () => {
                     if (buffer.length >= nonceLength) {
                         nonce = buffer.slice(0, nonceLength);
-                        decipher = cryptoUtil.decryptInit(algorithm, keyLength, ivLength, password, nonce);
+                        decipher = cryptoUtil.decryptInit(
+                            algorithm,
+                            keyLength,
+                            ivLength,
+                            password,
+                            nonce
+                        );
 
                         buffer = decipher.update(buffer.slice(nonceLength));
 
@@ -89,7 +95,10 @@ module.exports = (
                         if (verified) {
                             send(decipher.update(data));
                         } else {
-                            buffer = Buffer.concat([buffer, decipher.update(data)]);
+                            buffer = Buffer.concat([
+                                buffer,
+                                decipher.update(data),
+                            ]);
 
                             verify();
                         }

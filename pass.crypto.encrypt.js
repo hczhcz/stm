@@ -24,7 +24,13 @@ module.exports = (
                 const nonceLength = Math.min(keyLength + ivLength, 32);
 
                 const nonce = crypto.randomBytes(nonceLength);
-                const cipher = cryptoUtil.encryptInit(algorithm, keyLength, ivLength, password, nonce);
+                const cipher = cryptoUtil.encryptInit(
+                    algorithm,
+                    keyLength,
+                    ivLength,
+                    password,
+                    nonce
+                );
 
                 send(nonce);
 

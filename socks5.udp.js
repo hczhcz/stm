@@ -22,7 +22,14 @@ const init = (
 
                 parseDone = true;
 
-                socket.emit('socks5client.message', address.address, address.port, socks5address.stringify(task), task.port, msg.slice(i + 1));
+                socket.emit(
+                    'socks5client.message',
+                    address.address,
+                    address.port,
+                    socks5address.stringify(task),
+                    task.port,
+                    msg.slice(i + 1)
+                );
 
                 return handleClose();
             },
@@ -56,7 +63,13 @@ const init = (
                 break;
             }
         }
-    }).on('socks5server.message', (localAddress, localPort, remoteAddress, remotePort, msg) => {
+    }).on('socks5server.message', (
+        localAddress,
+        localPort,
+        remoteAddress,
+        remotePort,
+        msg
+    ) => {
         const task = socks5address.parse(remoteAddress, remotePort);
 
         socks5write.writeUDP(socket, localAddress, localPort, task, msg);
