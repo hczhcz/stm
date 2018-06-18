@@ -15,12 +15,14 @@ module.exports = (
                 throw Error();
             }
 
+            const deflate = zlib.createDeflateRaw({
+                flush: zlib.constants.Z_SYNC_FLUSH,
+                finishFlush: zlib.constants.Z_SYNC_FLUSH,
+                level: level,
+            });
+
             self.next(info, (send, close) => {
-                const deflate = zlib.createDeflateRaw({
-                    flush: zlib.constants.Z_SYNC_FLUSH,
-                    finishFlush: zlib.constants.Z_SYNC_FLUSH,
-                    level: level,
-                }).on('data', (chunk) => {
+                deflate.on('data', (chunk) => {
                     send(chunk);
                 });
 

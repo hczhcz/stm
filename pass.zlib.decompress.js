@@ -13,11 +13,13 @@ module.exports = () /*: Pass */ => {
                 throw Error();
             }
 
+            const inflate = zlib.createInflateRaw({
+                flush: zlib.constants.Z_SYNC_FLUSH,
+                finishFlush: zlib.constants.Z_SYNC_FLUSH,
+            });
+
             self.next(info, (send, close) => {
-                const inflate = zlib.createInflateRaw({
-                    flush: zlib.constants.Z_SYNC_FLUSH,
-                    finishFlush: zlib.constants.Z_SYNC_FLUSH,
-                }).on('data', (chunk) => {
+                inflate.on('data', (chunk) => {
                     send(chunk);
                 });
 

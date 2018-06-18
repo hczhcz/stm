@@ -13,27 +13,27 @@ module.exports = () /*: Pass */ => {
                 throw Error();
             }
 
+            let buffer = Buffer.alloc(0);
+
+            const parse = (send) => {
+                const size = serialize.tryParse(buffer);
+
+                if (size) {
+                    send(buffer.slice(0, size));
+
+                    buffer = buffer.slice(size);
+
+                    parse(send);
+                }
+            };
+
             self.next(info, (send, close) => {
-                let buffer = Buffer.alloc(0);
-
-                const parse = () => {
-                    const size = serialize.tryParse(buffer);
-
-                    if (size) {
-                        send(buffer.slice(0, size));
-
-                        buffer = buffer.slice(size);
-
-                        parse();
-                    }
-                };
-
                 callback((data) => {
                     // send
 
                     buffer = Buffer.concat([buffer, data]);
 
-                    parse();
+                    parse(send);
                 }, () => {
                     // close
 
