@@ -15,17 +15,15 @@ let key = null;
 
 for (let i = 2; i < process.argv.length; i += 1) {
     if (process.argv[i][0] === '-') {
-        const command = process.argv[i];
-
-        if (command === '-h' || command === '--help') {
+        if (process.argv[i] === '-h' || process.argv[i] === '--help') {
             mainHelp.print();
 
             break;
-        } else {
-            for (const j in config.args) {
-                if (j === process.argv[i]) {
-                    key = j;
-                }
+        }
+
+        for (const j in config.args) {
+            if (j === process.argv[i]) {
+                key = j;
             }
         }
     } else if (key === null) {
