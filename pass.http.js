@@ -5,7 +5,7 @@ const net = require('net');
 
 const config = require('./config');
 const serialize = require('./serialize');
-const httpAgent = require('./http.agent');
+const http = require('./http');
 
 module.exports = (
     listenPort /*: number */
@@ -61,7 +61,7 @@ module.exports = (
                 send(serialize.create(json, chunk));
             };
 
-            httpAgent.accept(socket);
+            http.accept(socket);
 
             socket.on('error', (err) => {
                 console.error(id + ' tcp error');
