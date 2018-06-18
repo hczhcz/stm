@@ -66,16 +66,11 @@ module.exports = (
 
                         break;
                     case 'data':
-                        info.socket.emit(
-                            'socks5server.data',
-                            chunk
-                        );
+                        info.socket.emit('socks5server.data', chunk);
 
                         break;
                     case 'end':
-                        info.socket.emit(
-                            'socks5server.end'
-                        );
+                        info.socket.emit('socks5server.end');
 
                         break;
                     default:
@@ -84,9 +79,7 @@ module.exports = (
             }, () => {
                 // close
 
-                info.socket.emit(
-                    'socks5server.close'
-                );
+                info.socket.emit('socks5server.close');
 
                 if (info.udpBind) {
                     info.udpBind.close();

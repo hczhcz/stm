@@ -32,6 +32,58 @@ const accept = (
         };
     };
 
+    const establish = () => {
+        socket.emit('socks5.step', 'establish');
+
+        socket.on('data', (chunk) => {
+            socket.emit('socks5client.data', chunk);
+        }).once('end', () => {
+            socket.emit('socks5client.end');
+        }).once('close', () => {
+            socket.emit('socks5client.close');
+        }).on('socks5server.data', (chunk) => {
+            socket.write(chunk);
+        }).once('socks5server.end', () => {
+            socket.end();
+        }).once('socks5server.close', () => {
+            socket.destroy();
+        });
+
+        socket.resume();
+    };
+
+    const connect = (task) => {
+        socket.once('socks5server.open', waitAddress(() => {
+            establish();
+        })).emit(
+            'socks5client.connect',
+            socks5address.stringify(task),
+            task.port
+        );
+    };
+
+    const bind = (task) => {
+        socket.once('socks5server.open', waitAddress(() => {
+            socket.once('socks5server.connection', waitAddress(() => {
+                establish();
+            }));
+        })).emit(
+            'socks5client.bind',
+            socks5address.stringify(task),
+            task.port
+        );
+    };
+
+    const udpAssociate = (task) => {
+        socket.once('socks5server.udpassociate', waitAddress(() => {
+            establish();
+        })).emit(
+            'socks5client.udpassociate',
+            socks5address.stringify(task),
+            task.port
+        );
+    };
+
     const handleRequest = () => {
         return socks5parse.parseRequest(
             (task) => {
@@ -41,69 +93,17 @@ const accept = (
 
                 parseDone = true;
 
-                const establish = () => {
-                    socket.emit('socks5.step', 'establish');
-
-                    socket.on('data', (chunk) => {
-                        socket.emit('socks5client.data', chunk);
-                    }).once('end', () => {
-                        socket.emit('socks5client.end');
-                    }).once('close', () => {
-                        socket.emit('socks5client.close');
-                    }).on('socks5server.data', (chunk) => {
-                        socket.write(chunk);
-                    }).once('socks5server.end', () => {
-                        socket.end();
-                    }).once('socks5server.close', () => {
-                        socket.destroy();
-                    });
-
-                    socket.resume();
-                };
-
                 switch (task.command) {
                     case 'connect':
-                        socket.once(
-                            'socks5server.open',
-                            waitAddress(() => {
-                                establish();
-                            })
-                        ).emit(
-                            'socks5client.connect',
-                            socks5address.stringify(task),
-                            task.port
-                        );
+                        connect(task);
 
                         break;
                     case 'bind':
-                        socket.once(
-                            'socks5server.open',
-                            waitAddress(() => {
-                                socket.once(
-                                    'socks5server.connection',
-                                    waitAddress(() => {
-                                        establish();
-                                    })
-                                );
-                            })
-                        ).emit(
-                            'socks5client.bind',
-                            socks5address.stringify(task),
-                            task.port
-                        );
+                        bind(task);
 
                         break;
                     case 'udpassociate':
-                        socket.once(
-                            'socks5server.udpassociate',
-                            waitAddress(() => {
-                                establish();
-                            })
-                        ).emit(
-                            'socks5client.udpassociate',
-                            socks5address.stringify(task),
-                            task.port
-                        );
+                        udpAssociate(task);
 
                         break;
                     default:
