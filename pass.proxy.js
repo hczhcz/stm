@@ -42,7 +42,7 @@ module.exports = (
 
                 let socket = null;
                 let tcpServer = null;
-                let udpServer = null;
+                let udpBind = null;
                 let connected = false;
 
                 callback((data) => {
@@ -168,7 +168,7 @@ module.exports = (
                         case 'udpassociate':
                             console.log(info.id + ' udpassociate');
 
-                            udpServer = dgram.createSocket({
+                            udpBind = dgram.createSocket({
                                 type: 'udp6',
                             }).once('listening', () => {
                                 connected = true;
@@ -191,12 +191,12 @@ module.exports = (
                             });
 
                             // note: not chained according to the official docs
-                            udpServer.bind();
+                            udpBind.bind();
 
                             break;
                         case 'message':
-                            if (udpServer) {
-                                udpServer.send(chunk, json[2], json[1]);
+                            if (udpBind) {
+                                udpBind.send(chunk, json[2], json[1]);
                             } else {
                                 throw Error();
                             }
@@ -215,9 +215,9 @@ module.exports = (
                                 socket.end();
                             }
 
-                            if (udpServer) {
-                                udpServer.close();
-                                udpServer = null;
+                            if (udpBind) {
+                                udpBind.close();
+                                udpBind = null;
                             }
 
                             break;
@@ -235,8 +235,8 @@ module.exports = (
                         tcpServer.close();
                     }
 
-                    if (udpServer) {
-                        udpServer.close();
+                    if (udpBind) {
+                        udpBind.close();
                     }
 
                     close();
