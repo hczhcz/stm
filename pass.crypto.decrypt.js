@@ -1,6 +1,6 @@
 'use strict';
 
-const cryptoUtil = require('./crypto.util');
+const crypto = require('./crypto');
 
 module.exports = (
     algorithm /*: string */,
@@ -73,7 +73,7 @@ module.exports = (
             const parse = (send, close) => {
                 if (buffer.length >= nonceLength) {
                     nonce = buffer.slice(0, nonceLength);
-                    decipher = cryptoUtil.decryptInit(
+                    decipher = crypto.createDecipher(
                         algorithm,
                         keyLength,
                         ivLength,

@@ -14,7 +14,13 @@ const hash256 = (
     return hash.digest();
 };
 
-const encryptInit = (
+const createNonce = (
+    nonceLength /*: number */
+) /*: Buffer */ => {
+    return crypto.randomBytes(nonceLength);
+};
+
+const createCipher = (
     algorithm /*: string */,
     keyLength /*: number */,
     ivLength /*: number */,
@@ -28,7 +34,7 @@ const encryptInit = (
     );
 };
 
-const decryptInit = (
+const createDecipher = (
     algorithm /*: string */,
     keyLength /*: number */,
     ivLength /*: number */,
@@ -43,6 +49,7 @@ const decryptInit = (
 };
 
 module.exports = {
-    encryptInit: encryptInit,
-    decryptInit: decryptInit,
+    createNonce: createNonce,
+    createCipher: createCipher,
+    createDecipher: createDecipher,
 };

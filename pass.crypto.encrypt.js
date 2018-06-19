@@ -1,8 +1,6 @@
 'use strict';
 
-const crypto = require('crypto');
-
-const cryptoUtil = require('./crypto.util');
+const crypto = require('./crypto');
 
 module.exports = (
     algorithm /*: string */,
@@ -22,8 +20,8 @@ module.exports = (
 
             const nonceLength = Math.min(keyLength + ivLength, 32);
 
-            const nonce = crypto.randomBytes(nonceLength);
-            const cipher = cryptoUtil.encryptInit(
+            const nonce = crypto.createNonce(nonceLength);
+            const cipher = crypto.createCipher(
                 algorithm,
                 keyLength,
                 ivLength,
