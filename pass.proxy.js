@@ -41,6 +41,8 @@ module.exports = (
             let connected = false;
 
             const connectInit = (sendJson, address, port) => {
+                info.socket.pause();
+
                 socket = net.createConnection({
                     host: address,
                     port: port,
@@ -62,6 +64,8 @@ module.exports = (
                             null,
                         ], null);
                     }
+
+                    info.socket.resume();
                 }).on('data', (dataChunk) => {
                     sendJson([
                         'data',
@@ -95,6 +99,8 @@ module.exports = (
             };
 
             const bindInit = (sendJson) => {
+                info.socket.pause();
+
                 tcpServer = net.createServer({
                     allowHalfOpen: true,
                 }).once('listening', () => {
@@ -155,6 +161,8 @@ module.exports = (
                         remoteSocket.remotePort,
                         null,
                     ], null);
+
+                    info.socket.resume();
                 }).once('error', (err) => {
                     if (!tcpServer) {
                         // non-null assertion
@@ -191,6 +199,8 @@ module.exports = (
             };
 
             const udpAssociateInit = (sendJson) => {
+                info.socket.pause();
+
                 udpBind = dgram.createSocket({
                     type: 'udp6',
                 }).once('listening', () => {
@@ -202,6 +212,8 @@ module.exports = (
                             null,
                         ], null);
                     }
+
+                    info.socket.resume();
                 }).on('message', (msg, address) => {
                     sendJson([
                         'message',
