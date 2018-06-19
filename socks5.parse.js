@@ -114,15 +114,15 @@ const parseRequest = function *(
 };
 
 const parseUDP = function *(
-    next /*: (task: Task) => Generator<void, void, number> */,
-    fragmentError /*: () => Generator<void, void, number> */,
-    addressError /*: () => Generator<void, void, number> */,
-    parseError /*: () => Generator<void, void, number> */
+    next /*: (task: Task) => void */,
+    fragmentError /*: () => void */,
+    addressError /*: () => void */,
+    parseError /*: () => void */
 ) /*: Generator<void, void, number> */ {
     // reserved
 
     if ((yield) !== 0x00 || (yield) !== 0x00) {
-        yield *parseError();
+        parseError();
 
         return;
     }
@@ -133,7 +133,7 @@ const parseUDP = function *(
 
     if ((yield) !== 0x00) {
         // not supported
-        yield *fragmentError();
+        fragmentError();
 
         return;
     }
@@ -157,7 +157,7 @@ const parseUDP = function *(
 
             break;
         default:
-            yield *addressError();
+            addressError();
 
             return;
     }
@@ -172,7 +172,7 @@ const parseUDP = function *(
 
     task.port = ((yield) << 8) + (yield);
 
-    yield *next(task);
+    next(task);
 };
 
 module.exports = {

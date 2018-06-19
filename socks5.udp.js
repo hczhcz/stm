@@ -11,9 +11,6 @@ const init = (
         let parseDone = false;
         let i = 0;
 
-        const handleClose = function *() {
-        };
-
         const handler = socks5parse.parseUDP(
             (task) => {
                 // next
@@ -30,29 +27,21 @@ const init = (
                     task.port,
                     msg.slice(i + 1)
                 );
-
-                return handleClose();
             },
             () => {
                 // fragment error
 
                 socket.emit('socks5.error', 'fragment');
-
-                return handleClose();
             },
             () => {
                 // address error
 
                 socket.emit('socks5.error', 'address');
-
-                return handleClose();
             },
             () => {
                 // parse error
 
                 socket.emit('socks5.error', 'parse');
-
-                return handleClose();
             }
         );
 
