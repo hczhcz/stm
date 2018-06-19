@@ -2,13 +2,13 @@
 
 const parseAuth = function *(
     next /*: () => Generator<void, void, number> */,
-    authError /*: () => Generator<void, void, number> */,
-    parseError /*: () => Generator<void, void, number> */
+    authError /*: () => void */,
+    parseError /*: () => void */
 ) /*: Generator<void, void, number> */ {
     // version
 
     if ((yield) !== 0x05) {
-        yield *parseError();
+        parseError();
 
         return;
     }
@@ -27,20 +27,20 @@ const parseAuth = function *(
     if (auth) {
         yield *next();
     } else {
-        yield *authError();
+        authError();
     }
 };
 
 const parseRequest = function *(
-    next /*: (task: Task) => Generator<void, void, number> */,
-    commandError /*: () => Generator<void, void, number> */,
-    addressError /*: () => Generator<void, void, number> */,
-    parseError /*: () => Generator<void, void, number> */
+    next /*: (Task) => void */,
+    commandError /*: () => void */,
+    addressError /*: () => void */,
+    parseError /*: () => void */
 ) /*: Generator<void, void, number> */ {
     // version
 
     if ((yield) !== 0x05) {
-        yield *parseError();
+        parseError();
 
         return;
     }
@@ -63,7 +63,7 @@ const parseRequest = function *(
 
             break;
         default:
-            yield *commandError();
+            commandError();
 
             return;
     }
@@ -71,7 +71,7 @@ const parseRequest = function *(
     // reserved
 
     if ((yield) !== 0x00) {
-        yield *parseError();
+        parseError();
 
         return;
     }
@@ -95,7 +95,7 @@ const parseRequest = function *(
 
             break;
         default:
-            yield *addressError();
+            addressError();
 
             return;
     }
@@ -110,11 +110,11 @@ const parseRequest = function *(
 
     task.port = ((yield) << 8) + (yield);
 
-    yield *next(task);
+    next(task);
 };
 
 const parseUDP = function *(
-    next /*: (task: Task) => void */,
+    next /*: (Task) => void */,
     fragmentError /*: () => void */,
     addressError /*: () => void */,
     parseError /*: () => void */

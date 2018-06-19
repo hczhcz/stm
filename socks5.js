@@ -9,10 +9,6 @@ const accept = (
 ) /*: void */ => {
     let parseDone = false;
 
-    const handleDone = function *() {
-        // nothing
-    };
-
     const waitAddress = (callback) => {
         return (address, port, code) => {
             if (code) {
@@ -104,8 +100,6 @@ const accept = (
                         // never reach
                         throw Error();
                 }
-
-                return handleDone();
             },
             () => {
                 // command error
