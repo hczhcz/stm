@@ -8,14 +8,6 @@ const accept = (
     let buffer = Buffer.alloc(0);
     let parseDone = false;
 
-    const handleClose = function *() {
-        socket.end();
-    };
-
-    const handleDone = function *() {
-        // nothing
-    };
-
     const establish = () => {
         socket.emit('http.step', 'establish');
 
@@ -117,18 +109,15 @@ const accept = (
                     request(method, target, httpVersion, headers);
                 }
 
-                yield *handleDone();
-
-                return;
+                break;
             } else if (line[0] === ' ' || line[0] === '\t') {
                 if (headers.length) {
                     headers[headers.length - 1].push(line);
                 } else {
                     socket.emit('http.error', 'parse');
+                    socket.close();
 
-                    yield *handleClose();
-
-                    return;
+                    break;
                 }
             } else {
                 const header = line.match(/^([^ \t]+):(.*)$/);
@@ -137,10 +126,9 @@ const accept = (
                     headers.push([header[1], header[2]]);
                 } else {
                     socket.emit('http.error', 'parse');
+                    socket.close();
 
-                    yield *handleClose();
-
-                    return;
+                    break;
                 }
             }
         }
@@ -159,8 +147,7 @@ const accept = (
             yield *handleHeader(startLine[1], startLine[2], startLine[3]);
         } else {
             socket.emit('http.error', 'parse');
-
-            yield *handleClose();
+            socket.close();
         }
     };
 
