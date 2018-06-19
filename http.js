@@ -6,11 +6,15 @@ const accept = (
     socket /*: net$Socket */
 ) /*: void */ => {
     let buffer = Buffer.alloc(0);
+    let parseDone = false;
 
-    let startLine = null;
-    const headers = [];
+    const handleClose = function *() {
+        socket.end();
+    };
 
-    let piped = false;
+    const handleDone = function *() {
+        // nothing
+    };
 
     const establish = () => {
         socket.emit('http.step', 'establish');
@@ -43,9 +47,11 @@ const accept = (
             'HTTP/' + httpVersion
                 + ' 200 Connection Established\r\n\r\n'
         );
+
+        establish();
     };
 
-    const request = (method, target, httpVersion) => {
+    const request = (method, target, httpVersion, headers) => {
         const address = url.parse(target);
 
         socket.emit(
@@ -89,89 +95,100 @@ const accept = (
                 '\r\n'
             )
         );
+
+        establish();
     };
 
-    const parseHeader = (method, target, httpVersion) => {
-        const index = buffer.indexOf('\r\n');
+    const handleHeader = function *(method, target, httpVersion) {
+        const headers = [];
 
-        if (index >= 0) {
-            const line = buffer.slice(0, index).toString();
-
-            buffer = buffer.slice(index + 2);
+        while (true) {
+            const line = yield;
 
             if (line === '') {
                 socket.emit('http.step', 'header');
+
+                parseDone = true;
 
                 // notice: how about 'OPTIONS' and 'TRACE'?
                 if (method === 'CONNECT') {
                     connect(target, httpVersion);
                 } else {
-                    request(method, target, httpVersion);
+                    request(method, target, httpVersion, headers);
                 }
 
-                if (buffer.length) {
-                    socket.emit('httpclient.data', buffer);
-                }
+                yield *handleDone();
 
-                piped = true;
-
-                establish();
+                return;
             } else if (line[0] === ' ' || line[0] === '\t') {
                 if (headers.length) {
                     headers[headers.length - 1].push(line);
-
-                    parseHeader(method, target, httpVersion);
                 } else {
                     socket.emit('http.error', 'parse');
-                    socket.end();
+
+                    yield *handleClose();
+
+                    return;
                 }
             } else {
                 const header = line.match(/^([^ \t]+):(.*)$/);
 
                 if (header) {
                     headers.push([header[1], header[2]]);
-
-                    parseHeader(method, target, httpVersion);
                 } else {
                     socket.emit('http.error', 'parse');
-                    socket.end();
+
+                    yield *handleClose();
+
+                    return;
                 }
             }
         }
     };
 
-    const parseStartLine = () => {
-        const index = buffer.indexOf('\r\n');
+    const handleStartLine = function *() {
+        const line = yield;
 
-        if (index >= 0) {
-            const line = buffer.slice(0, index).toString();
+        const startLine = line.match(
+            /^([^ \t\r\n]+) ([^ \t\r\n]+) HTTP\/([\d.]+)$/
+        );
 
-            startLine = line.match(
-                /^([^ \t\r\n]+) ([^ \t\r\n]+) HTTP\/([\d.]+)$/
-            );
+        if (startLine) {
+            socket.emit('http.step', 'startline');
 
-            buffer = buffer.slice(index + 2);
+            yield *handleHeader(startLine[1], startLine[2], startLine[3]);
+        } else {
+            socket.emit('http.error', 'parse');
 
-            if (startLine) {
-                socket.emit('http.step', 'startline');
-
-                parseHeader(startLine[1], startLine[2], startLine[3]);
-            } else {
-                socket.emit('http.error', 'parse');
-                socket.end();
-            }
+            yield *handleClose();
         }
     };
 
-    socket.on('data', (chunk) => {
-        buffer = Buffer.concat([buffer, chunk]);
+    const handler = handleStartLine();
 
-        if (piped) {
-            // nothing, see function established()
-        } else if (startLine) {
-            parseHeader(startLine[1], startLine[2], startLine[3]);
-        } else {
-            parseStartLine();
+    handler.next();
+
+    socket.on('data', (chunk) => {
+        if (!parseDone) {
+            buffer = Buffer.concat([buffer, chunk]);
+
+            while (true) {
+                const index = buffer.indexOf('\r\n');
+
+                if (index < 0) {
+                    break;
+                }
+
+                handler.next(buffer.slice(0, index).toString());
+
+                buffer = buffer.slice(index + 2);
+
+                if (parseDone) {
+                    socket.unshift(buffer);
+
+                    break;
+                }
+            }
         }
     });
 };
