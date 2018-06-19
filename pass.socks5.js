@@ -127,16 +127,14 @@ module.exports = (
 
                 sendJson(['connect', address, port], null);
 
-                process.nextTick(() => {
-                    if (!fullResponse) {
-                        socket.emit(
-                            'socks5server.open',
-                            '0.0.0.0',
-                            0,
-                            null
-                        );
-                    }
-                });
+                if (!fullResponse) {
+                    socket.emit(
+                        'socks5server.open',
+                        '0.0.0.0',
+                        0,
+                        null
+                    );
+                }
             }).once('socks5client.bind', (address, port) => {
                 console.log(
                     info.id + ' socks5 bind ' + address + ' ' + port

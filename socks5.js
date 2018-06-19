@@ -14,7 +14,7 @@ const accept = (
     };
 
     const handleDone = function *() {
-        socket.pause();
+        // nothing
     };
 
     const waitAddress = (callback) => {
@@ -51,7 +51,7 @@ const accept = (
     };
 
     const connect = (task) => {
-        socket.once('socks5server.open', waitAddress(() => {
+        socket.pause().once('socks5server.open', waitAddress(() => {
             establish();
         })).emit(
             'socks5client.connect',
@@ -61,7 +61,7 @@ const accept = (
     };
 
     const bind = (task) => {
-        socket.once('socks5server.open', waitAddress(() => {
+        socket.pause().once('socks5server.open', waitAddress(() => {
             socket.once('socks5server.connection', waitAddress(() => {
                 establish();
             }));
@@ -73,7 +73,7 @@ const accept = (
     };
 
     const udpAssociate = (task) => {
-        socket.once('socks5server.udpassociate', waitAddress(() => {
+        socket.pause().once('socks5server.udpassociate', waitAddress(() => {
             establish();
         })).emit(
             'socks5client.udpassociate',
