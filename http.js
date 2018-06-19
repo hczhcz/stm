@@ -2,6 +2,8 @@
 
 const url = require('url');
 
+const httpParse = require('./http.parse');
+
 const accept = (
     socket /*: net$Socket */
 ) /*: void */ => {
@@ -91,13 +93,11 @@ const accept = (
         establish();
     };
 
-    const handleHeader = function *(method, target, httpVersion) {
-        const headers = [];
+    const handleHeader = (method, target, httpVersion) => {
+        return httpParse.parseHeader(
+            (headers) => {
+                // next
 
-        while (true) {
-            const line = yield;
-
-            if (line === '') {
                 socket.emit('http.step', 'header');
 
                 parseDone = true;
@@ -108,47 +108,32 @@ const accept = (
                 } else {
                     request(method, target, httpVersion, headers);
                 }
+            },
+            () => {
+                // parse error
 
-                break;
-            } else if (line[0] === ' ' || line[0] === '\t') {
-                if (headers.length) {
-                    headers[headers.length - 1].push(line);
-                } else {
-                    socket.emit('http.error', 'parse');
-                    socket.close();
-
-                    break;
-                }
-            } else {
-                const header = line.match(/^([^ \t]+):(.*)$/);
-
-                if (header) {
-                    headers.push([header[1], header[2]]);
-                } else {
-                    socket.emit('http.error', 'parse');
-                    socket.close();
-
-                    break;
-                }
+                socket.emit('http.error', 'parse');
+                socket.end();
             }
-        }
+        );
     };
 
-    const handleStartLine = function *() {
-        const line = yield;
+    const handleStartLine = () => {
+        return httpParse.parseStartLine(
+            (method, target, httpVersion) => {
+                // next
 
-        const startLine = line.match(
-            /^([^ \t\r\n]+) ([^ \t\r\n]+) HTTP\/([\d.]+)$/
+                socket.emit('http.step', 'startline');
+
+                return handleHeader(method, target, httpVersion);
+            },
+            () => {
+                // parse error
+
+                socket.emit('http.error', 'parse');
+                socket.end();
+            }
         );
-
-        if (startLine) {
-            socket.emit('http.step', 'startline');
-
-            yield *handleHeader(startLine[1], startLine[2], startLine[3]);
-        } else {
-            socket.emit('http.error', 'parse');
-            socket.close();
-        }
     };
 
     const handler = handleStartLine();
