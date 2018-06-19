@@ -9,10 +9,6 @@ const accept = (
 ) /*: void */ => {
     let parseDone = false;
 
-    const handleClose = function *() {
-        socket.end();
-    };
-
     const handleDone = function *() {
         // nothing
     };
@@ -114,29 +110,26 @@ const accept = (
             () => {
                 // command error
 
-                socket.emit('socks5.error', 'command');
-
                 // reply: command not supported
                 socks5write.writeError(socket, 0x07);
 
-                return handleClose();
+                socket.emit('socks5.error', 'command');
+                socket.end();
             },
             () => {
                 // address error
 
-                socket.emit('socks5.error', 'address');
-
                 // reply: address type not supported
                 socks5write.writeError(socket, 0x08);
 
-                return handleClose();
+                socket.emit('socks5.error', 'address');
+                socket.end();
             },
             () => {
                 // parse error
 
                 socket.emit('socks5.error', 'parse');
-
-                return handleClose();
+                socket.end();
             }
         );
     };
@@ -156,19 +149,17 @@ const accept = (
             () => {
                 // auth error
 
-                socket.emit('socks5.error', 'auth');
-
                 // method: no acceptable methods
                 socks5write.writeAuth(socket, 0xFF);
 
-                return handleClose();
+                socket.emit('socks5.error', 'auth');
+                socket.end();
             },
             () => {
                 // parse error
 
                 socket.emit('socks5.error', 'parse');
-
-                return handleClose();
+                socket.end();
             }
         );
     };
