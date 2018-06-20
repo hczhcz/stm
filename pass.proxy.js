@@ -26,7 +26,9 @@ module.exports = (
     nextPass /*: Pass */,
     fullResponse /*: boolean */
 ) /*: Pass */ => {
-    return (info, callback) => {
+    return function *(info) {
+        const next = nextPass(info);
+
         let socket = null;
         let tcpServer = null;
         let udpBind = null;
@@ -243,89 +245,87 @@ module.exports = (
             udpBind.bind();
         };
 
-        nextPass(info, (send, close) => {
-            const sendJson = (json, chunk) => {
-                send(serialize.create(json, chunk));
-            };
+        const sendJson = (json, chunk) => {
+            next.next(serialize.create(json, chunk));
+        };
 
-            callback((data) => {
-                // send
+        next.next();
 
-                const json = serialize.getJson(data);
-                const chunk = serialize.getChunk(data);
+        // TODO: 2-stage
 
-                switch (json[0]) {
-                    case 'connect':
-                        console.log(
-                            info.id + ' connect ' + json[1] + ' ' + json[2]
-                        );
+        for (let data = yield; data !== null; data = yield) {
+            const json = serialize.getJson(data);
+            const chunk = serialize.getChunk(data);
 
-                        connectInit(sendJson, json[1], json[2]);
+            switch (json[0]) {
+                case 'connect':
+                    console.log(
+                        info.id + ' connect ' + json[1] + ' ' + json[2]
+                    );
 
-                        break;
-                    case 'bind':
-                        console.log(
-                            info.id + ' bind'
-                        );
+                    connectInit(sendJson, json[1], json[2]);
 
-                        bindInit(sendJson);
+                    break;
+                case 'bind':
+                    console.log(
+                        info.id + ' bind'
+                    );
 
-                        break;
-                    case 'udpassociate':
-                        console.log(
-                            info.id + ' udpassociate'
-                        );
+                    bindInit(sendJson);
 
-                        udpAssociateInit(sendJson);
+                    break;
+                case 'udpassociate':
+                    console.log(
+                        info.id + ' udpassociate'
+                    );
 
-                        break;
-                    case 'message':
-                        if (udpBind) {
-                            udpBind.send(chunk, json[2], json[1]);
-                        } else {
-                            throw Error();
-                        }
+                    udpAssociateInit(sendJson);
 
-                        break;
-                    case 'data':
-                        if (socket) {
-                            socket.write(chunk);
-                        } else {
-                            throw Error();
-                        }
+                    break;
+                case 'message':
+                    if (udpBind) {
+                        udpBind.send(chunk, json[2], json[1]);
+                    } else {
+                        throw Error();
+                    }
 
-                        break;
-                    case 'end':
-                        if (socket) {
-                            socket.end();
-                        }
+                    break;
+                case 'data':
+                    if (socket) {
+                        socket.write(chunk);
+                    } else {
+                        throw Error();
+                    }
 
-                        if (udpBind) {
-                            udpBind.close();
-                            udpBind = null;
-                        }
+                    break;
+                case 'end':
+                    if (socket) {
+                        socket.end();
+                    }
 
-                        break;
-                    default:
-                        // ignore
-                }
-            }, () => {
-                // close
+                    if (udpBind) {
+                        udpBind.close();
+                        udpBind = null;
+                    }
 
-                if (socket) {
-                    socket.destroy();
-                }
+                    break;
+                default:
+                    // ignore
+            }
+        }
 
-                if (tcpServer) {
-                    tcpServer.close();
-                }
+        if (socket) {
+            socket.destroy();
+        }
 
-                if (udpBind) {
-                    udpBind.close();
-                }
+        if (tcpServer) {
+            tcpServer.close();
+        }
 
-                close();
-            });
-        });
+        if (udpBind) {
+            udpBind.close();
+        }
+
+        next.next(null);
     };
 };

@@ -19,19 +19,21 @@ module.exports = (
             socket: socket,
         };
 
-        nextPass(info, (send, close) => {
-            socket.on('data', (chunk) => {
-                send(chunk);
-            }).once('close', () => {
-                close();
-            }).on('error', (err) => {
-                console.error(info.id + ' tcp error');
+        const next = nextPass(info);
 
-                if (config.log.network) {
-                    console.error(err);
-                }
-            }).resume();
-        });
+        socket.on('data', (chunk) => {
+            next.next(chunk);
+        }).once('close', () => {
+            next.next(null);
+        }).on('error', (err) => {
+            console.error(info.id + ' tcp error');
+
+            if (config.log.network) {
+                console.error(err);
+            }
+        }).resume();
+
+        next.next();
     }).on('error', (err) => {
         console.error('tcp server error');
 
@@ -40,10 +42,8 @@ module.exports = (
         }
     }).listen(port);
 
-    return (info, callback) => {
-        callback((data) => {
-            // send
-
+    return function *(info) {
+        for (let data = yield; data !== null; data = yield) {
             if (!info.socket) {
                 // non-null assertion
 
@@ -51,16 +51,14 @@ module.exports = (
             }
 
             info.socket.write(data);
-        }, () => {
-            // close
+        }
 
-            if (!info.socket) {
-                // non-null assertion
+        if (!info.socket) {
+            // non-null assertion
 
-                throw Error();
-            }
+            throw Error();
+        }
 
-            info.socket.destroy();
-        });
+        info.socket.destroy();
     };
 };

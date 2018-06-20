@@ -14,7 +14,7 @@ const runMode = (
     for (let i = 1; i < configList.length; i += 1) {
         const nextIndex = i;
         const argList = [(info, callback) => {
-            passList[nextIndex](info, callback);
+            return passList[nextIndex](info, callback);
         }];
 
         for (let j = 1; j < configList[i].length; j += 1) {

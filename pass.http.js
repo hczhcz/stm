@@ -21,53 +21,55 @@ module.exports = (
             socket: socket,
         };
 
-        nextPass(info, (send, close) => {
-            const sendJson = (json, chunk) => {
-                send(serialize.create(json, chunk));
-            };
+        const next = nextPass(info);
 
-            http.accept(socket);
+        const sendJson = (json, chunk) => {
+            next.next(serialize.create(json, chunk));
+        };
 
-            socket.on('error', (err) => {
-                console.error(info.id + ' tcp error');
+        http.accept(socket);
 
-                if (config.log.network) {
-                    console.error(err);
-                }
-            }).once('httpclient.request', (address, port) => {
-                console.log(info.id + ' http request ' + address + ' ' + port);
+        socket.on('error', (err) => {
+            console.error(info.id + ' tcp error');
 
-                sendJson(['connect', address, port], null);
-            }).once('httpclient.connect', (address, port) => {
-                console.log(info.id + ' http connect ' + address + ' ' + port);
+            if (config.log.network) {
+                console.error(err);
+            }
+        }).once('httpclient.request', (address, port) => {
+            console.log(info.id + ' http request ' + address + ' ' + port);
 
-                sendJson(['connect', address, port], null);
-            }).on('httpclient.data', (chunk) => {
-                if (config.log.transfer) {
-                    console.error(info.id + ' http data');
-                }
+            sendJson(['connect', address, port], null);
+        }).once('httpclient.connect', (address, port) => {
+            console.log(info.id + ' http connect ' + address + ' ' + port);
 
-                sendJson(['data'], chunk);
-            }).on('httpclient.end', () => {
-                if (config.log.transfer) {
-                    console.error(info.id + ' http end');
-                }
+            sendJson(['connect', address, port], null);
+        }).on('httpclient.data', (chunk) => {
+            if (config.log.transfer) {
+                console.error(info.id + ' http data');
+            }
 
-                sendJson(['end'], null);
-            }).on('httpclient.close', () => {
-                if (config.log.transfer) {
-                    console.error(info.id + ' http close');
-                }
+            sendJson(['data'], chunk);
+        }).on('httpclient.end', () => {
+            if (config.log.transfer) {
+                console.error(info.id + ' http end');
+            }
 
-                close();
-            }).on('http.step', (step) => {
-                if (config.log.step) {
-                    console.error(info.id + ' http step ' + step);
-                }
-            }).on('http.error', (step) => {
-                console.error(info.id + ' http error ' + step);
-            }).resume();
-        });
+            sendJson(['end'], null);
+        }).on('httpclient.close', () => {
+            if (config.log.transfer) {
+                console.error(info.id + ' http close');
+            }
+
+            next.next(null);
+        }).on('http.step', (step) => {
+            if (config.log.step) {
+                console.error(info.id + ' http step ' + step);
+            }
+        }).on('http.error', (step) => {
+            console.error(info.id + ' http error ' + step);
+        }).resume();
+
+        next.next();
     }).on('error', (err) => {
         console.error('tcp server error');
 
@@ -76,10 +78,10 @@ module.exports = (
         }
     }).listen(listenPort);
 
-    return (info, callback) => {
-        callback((data) => {
-            // send
+    return function *(info) {
+        // TODO: 2-stage
 
+        for (let data = yield; data !== null; data = yield) {
             const json = serialize.getJson(data);
             const chunk = serialize.getChunk(data);
 
@@ -107,16 +109,14 @@ module.exports = (
                 default:
                     // ignore
             }
-        }, () => {
-            // close
+        }
 
-            if (!info.socket) {
-                // non-null assertion
+        if (!info.socket) {
+            // non-null assertion
 
-                throw Error();
-            }
+            throw Error();
+        }
 
-            info.socket.emit('httpserver.close');
-        });
+        info.socket.emit('httpserver.close');
     };
 };

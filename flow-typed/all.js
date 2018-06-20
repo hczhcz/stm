@@ -13,7 +13,4 @@ declare type Info = {
     udpPort?: number,
 };
 
-declare type PassCallback = ((Buffer) => void, () => void) => void;
-// declare type PassCallback = (Generator<void, void, Buffer | null>) => void;
-
-declare type Pass = (Info, PassCallback) => void;
+declare type Pass = (Info) => Generator<void, void, Buffer | null>;

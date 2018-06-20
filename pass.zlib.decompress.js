@@ -5,28 +5,24 @@ const zlib = require('zlib');
 module.exports = (
     nextPass /*: Pass */
 ) /*: Pass */ => {
-    return (info, callback) => {
+    return function *(info) {
+        const next = nextPass(info);
+
         const inflate = zlib.createInflateRaw({
             flush: zlib.constants.Z_SYNC_FLUSH,
             finishFlush: zlib.constants.Z_SYNC_FLUSH,
+        }).on('data', (chunk) => {
+            next.next(chunk);
+        }).on('close', () => {
+            next.next(null);
         });
 
-        nextPass(info, (send, close) => {
-            inflate.on('data', (chunk) => {
-                send(chunk);
-            });
+        next.next();
 
-            callback((data) => {
-                // send
+        for (let data = yield; data !== null; data = yield) {
+            inflate.write(data);
+        }
 
-                inflate.write(data);
-            }, () => {
-                // close
-
-                inflate.destroy();
-
-                close();
-            });
-        });
+        inflate.destroy();
     };
 };

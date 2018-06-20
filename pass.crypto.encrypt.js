@@ -9,7 +9,9 @@ module.exports = (
     ivLength /*: number */,
     password /*: string */
 ) /*: Pass */ => {
-    return (info, callback) => {
+    return function *(info) {
+        const next = nextPass(info);
+
         const nonceLength = Math.min(keyLength + ivLength, 32);
 
         const nonce = crypto.createNonce(nonceLength);
@@ -28,25 +30,21 @@ module.exports = (
         header.writeUInt32BE(0xDEADBEEF, 0);
         header.writeUInt32BE(Math.floor(Date.now() / 1000 / 60), 4);
 
-        nextPass(info, (send, close) => {
-            send(nonce);
-            send(cipher.update(header));
+        next.next();
 
-            callback((data) => {
-                // send
+        next.next(nonce);
+        next.next(cipher.update(header));
 
-                send(cipher.update(data));
-            }, () => {
-                // close
+        for (let data = yield; data !== null; data = yield) {
+            next.next(cipher.update(data));
+        }
 
-                if (cipher.final().length) {
-                    // note: should be flushed earlier
+        if (cipher.final().length) {
+            // note: should be flushed earlier
 
-                    throw Error();
-                }
+            throw Error();
+        }
 
-                close();
-            });
-        });
+        next.next(null);
     };
 };
