@@ -27,6 +27,12 @@ module.exports = (
 
                 switch (json[0]) {
                     case 'open':
+                        if (!info.socket) {
+                            // non-null assertion
+
+                            throw Error();
+                        }
+
                         info.socket.emit(
                             'socks5server.open',
                             json[1],
@@ -36,6 +42,12 @@ module.exports = (
 
                         break;
                     case 'connection':
+                        if (!info.socket) {
+                            // non-null assertion
+
+                            throw Error();
+                        }
+
                         info.socket.emit(
                             'socks5server.connection',
                             json[1],
@@ -45,7 +57,20 @@ module.exports = (
 
                         break;
                     case 'udpassociate':
+                        if (!info.udpBind) {
+                            // non-null assertion
+
+                            throw Error();
+                        }
+
                         bind = info.udpBind.address();
+
+                        if (!info.socket) {
+                            // non-null assertion
+
+                            throw Error();
+                        }
+
                         info.socket.emit(
                             'socks5server.udpassociate',
                             bind.address,
@@ -55,6 +80,12 @@ module.exports = (
 
                         break;
                     case 'message':
+                        if (!info.socket || !info.udpBind) {
+                            // non-null assertion
+
+                            throw Error();
+                        }
+
                         info.udpBind.emit(
                             'socks5server.message',
                             info.udpAddress,
@@ -66,10 +97,22 @@ module.exports = (
 
                         break;
                     case 'data':
+                        if (!info.socket) {
+                            // non-null assertion
+
+                            throw Error();
+                        }
+
                         info.socket.emit('socks5server.data', chunk);
 
                         break;
                     case 'end':
+                        if (!info.socket) {
+                            // non-null assertion
+
+                            throw Error();
+                        }
+
                         info.socket.emit('socks5server.end');
 
                         break;
@@ -78,6 +121,12 @@ module.exports = (
                 }
             }, () => {
                 // close
+
+                if (!info.socket) {
+                    // non-null assertion
+
+                    throw Error();
+                }
 
                 info.socket.emit('socks5server.close');
 
@@ -99,7 +148,7 @@ module.exports = (
 
         socket.pause();
 
-        const info /*: any */ = {
+        const info /*: Info */ = {
             id: crypto.randomBytes(2).toString('hex'),
             socket: socket,
             udpAddress: null,
@@ -146,15 +195,13 @@ module.exports = (
                     info.id + ' socks5 udpassociate ' + address + ' ' + port
                 );
 
-                info.udpAddress = address;
-                info.udpPort = port;
-                info.udpBind = dgram.createSocket({
+                const udpBind = dgram.createSocket({
                     type: 'udp6',
                 }).once('listening', () => {
                     sendJson(['udpassociate'], null);
 
                     if (!fullResponse) {
-                        const bind = info.udpBind.address();
+                        const bind = udpBind.address();
 
                         socket.emit(
                             'socks5server.udpassociate',
@@ -190,9 +237,13 @@ module.exports = (
                 });
 
                 // note: not chained according to the official docs
-                info.udpBind.bind();
+                udpBind.bind();
 
-                socks5udp.init(info.udpBind);
+                socks5udp.init(udpBind);
+
+                info.udpBind = udpBind;
+                info.udpAddress = address;
+                info.udpPort = port;
             }).on('socks5client.data', (chunk) => {
                 if (config.log.transfer) {
                     console.error(info.id + ' socks5 data');

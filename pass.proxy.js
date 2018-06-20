@@ -41,7 +41,9 @@ module.exports = (
             let connected = false;
 
             const connectInit = (sendJson, address, port) => {
-                info.socket.pause();
+                if (info.socket) {
+                    info.socket.pause();
+                }
 
                 socket = net.createConnection({
                     host: address,
@@ -65,7 +67,9 @@ module.exports = (
                         ], null);
                     }
 
-                    info.socket.resume();
+                    if (info.socket) {
+                        info.socket.resume();
+                    }
                 }).on('data', (dataChunk) => {
                     sendJson([
                         'data',
@@ -99,7 +103,9 @@ module.exports = (
             };
 
             const bindInit = (sendJson) => {
-                info.socket.pause();
+                if (info.socket) {
+                    info.socket.pause();
+                }
 
                 tcpServer = net.createServer({
                     allowHalfOpen: true,
@@ -162,7 +168,9 @@ module.exports = (
                         null,
                     ], null);
 
-                    info.socket.resume();
+                    if (info.socket) {
+                        info.socket.resume();
+                    }
                 }).once('error', (err) => {
                     if (!tcpServer) {
                         // non-null assertion
@@ -199,7 +207,9 @@ module.exports = (
             };
 
             const udpAssociateInit = (sendJson) => {
-                info.socket.pause();
+                if (info.socket) {
+                    info.socket.pause();
+                }
 
                 udpBind = dgram.createSocket({
                     type: 'udp6',
@@ -213,7 +223,9 @@ module.exports = (
                         ], null);
                     }
 
-                    info.socket.resume();
+                    if (info.socket) {
+                        info.socket.resume();
+                    }
                 }).on('message', (msg, address) => {
                     sendJson([
                         'message',

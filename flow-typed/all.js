@@ -5,13 +5,21 @@ declare type Task = {
     port: number,
 };
 
+declare type Info = {
+    id: string,
+    socket?: net$Socket,
+    udpBind?: dgram$Socket,
+    udpAddress?: string,
+    udpPort?: number,
+};
+
 declare type PassCallback = (
-    send: (chunk: Buffer) => void,
+    send: (Buffer) => void,
     close: () => void
 ) => void;
 
 declare type PassOpen = (
-    info: any,
+    info: Info,
     callback: PassCallback
 ) => void
 

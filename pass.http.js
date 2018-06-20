@@ -22,10 +22,22 @@ module.exports = (
 
                 switch (json[0]) {
                     case 'data':
+                        if (!info.socket) {
+                            // non-null assertion
+
+                            throw Error();
+                        }
+
                         info.socket.emit('httpserver.data', chunk);
 
                         break;
                     case 'end':
+                        if (!info.socket) {
+                            // non-null assertion
+
+                            throw Error();
+                        }
+
                         info.socket.emit('httpserver.end');
 
                         break;
@@ -34,6 +46,12 @@ module.exports = (
                 }
             }, () => {
                 // close
+
+                if (!info.socket) {
+                    // non-null assertion
+
+                    throw Error();
+                }
 
                 info.socket.emit('httpserver.close');
             });

@@ -15,9 +15,21 @@ module.exports = (
             callback((data) => {
                 // send
 
+                if (!info.socket) {
+                    // non-null assertion
+
+                    throw Error();
+                }
+
                 info.socket.write(data);
             }, () => {
                 // close
+
+                if (!info.socket) {
+                    // non-null assertion
+
+                    throw Error();
+                }
 
                 info.socket.destroy();
             });
