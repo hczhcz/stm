@@ -151,9 +151,6 @@ module.exports = (
         const info /*: Info */ = {
             id: crypto.randomBytes(2).toString('hex'),
             socket: socket,
-            udpAddress: null,
-            udpPort: null,
-            udpBind: null,
         };
 
         self.next(info, (send, close) => {
@@ -257,7 +254,10 @@ module.exports = (
 
                 if (info.udpBind) {
                     info.udpBind.close();
-                    info.udpBind = null;
+
+                    delete info.udpBind;
+                    delete info.udpAddress;
+                    delete info.udpPort;
                 }
 
                 sendJson(['end'], null);

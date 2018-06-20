@@ -6,7 +6,7 @@ const socks5write = require('./socks5.write');
 
 const init = (
     socket /*: dgram$Socket */
-) => {
+) /*: void */ => {
     socket.on('message', (msg, address) => {
         let parseDone = false;
         let i = 0;

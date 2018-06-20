@@ -2,7 +2,7 @@
 
 const getAddressHeader = (
     task /*: Task */
-) => {
+) /*: Buffer */ => {
     switch (task.addressType) {
         case 'ipv4':
             return Buffer.from([
@@ -26,7 +26,7 @@ const getAddressHeader = (
 const writeAuth = (
     socket /*: net$Socket */,
     method /*: number */
-) => {
+) /*: void */ => {
     // version: 5
     // method
 
@@ -39,7 +39,7 @@ const writeAuth = (
 const writeReply = (
     socket /*: net$Socket */,
     task /*: Task */
-) => {
+) /*: void */ => {
     // version: 5
     // reply: succeeded
     // reserved
@@ -64,7 +64,7 @@ const writeReply = (
 const writeError = (
     socket /*: net$Socket */,
     reply /*: number */
-) => {
+) /*: void */ => {
     // version: 5
     // reply
     // reserved
@@ -85,7 +85,7 @@ const writeError = (
 const writeErrorTCP = (
     socket /*: net$Socket */,
     code /*: string */
-) => {
+) /*: void */ => {
     switch (code) {
         case 'ENETUNREACH':
             // reply: network unreachable
@@ -114,7 +114,7 @@ const writeUDP = (
     port /*: number */,
     task /*: Task */,
     msg /*: Buffer */
-) => {
+) /*: void */ => {
     // reserved
     // fragment: 0
     // address type
