@@ -2,46 +2,36 @@
 
 const serialize = require('./serialize');
 
-module.exports = () /*: Pass */ => {
-    const self = {
-        next: null,
+module.exports = (
+    nextPass /*: Pass */
+) /*: Pass */ => {
+    return (info, callback) => {
+        let buffer = Buffer.alloc(0);
 
-        open: (info, callback) => {
-            if (!self.next) {
-                // non-null assertion
+        const parse = (send) => {
+            const size = serialize.tryParse(buffer);
 
-                throw Error();
+            if (size) {
+                send(buffer.slice(0, size));
+
+                buffer = buffer.slice(size);
+
+                parse(send);
             }
+        };
 
-            let buffer = Buffer.alloc(0);
+        nextPass(info, (send, close) => {
+            callback((data) => {
+                // send
 
-            const parse = (send) => {
-                const size = serialize.tryParse(buffer);
+                buffer = Buffer.concat([buffer, data]);
 
-                if (size) {
-                    send(buffer.slice(0, size));
+                parse(send);
+            }, () => {
+                // close
 
-                    buffer = buffer.slice(size);
-
-                    parse(send);
-                }
-            };
-
-            self.next(info, (send, close) => {
-                callback((data) => {
-                    // send
-
-                    buffer = Buffer.concat([buffer, data]);
-
-                    parse(send);
-                }, () => {
-                    // close
-
-                    close();
-                });
+                close();
             });
-        },
+        });
     };
-
-    return self;
 };

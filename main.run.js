@@ -12,7 +12,10 @@ const runMode = (
     const passList = [];
 
     for (let i = 1; i < configList.length; i += 1) {
-        const argList = [];
+        const nextIndex = i;
+        const argList = [(info, callback) => {
+            passList[nextIndex](info, callback);
+        }];
 
         for (let j = 1; j < configList[i].length; j += 1) {
             if (
@@ -42,10 +45,6 @@ const runMode = (
     }
 
     passList.push(passList[0]);
-
-    for (let k = 1; k < passList.length; k += 1) {
-        passList[k - 1].next = passList[k].open;
-    }
 };
 
 module.exports = {

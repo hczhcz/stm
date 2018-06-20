@@ -23,54 +23,112 @@ const serialize = require('./serialize');
 // end()
 
 module.exports = (
+    nextPass /*: Pass */,
     fullResponse /*: boolean */
 ) /*: Pass */ => {
-    const self = {
-        next: null,
+    return (info, callback) => {
+        let socket = null;
+        let tcpServer = null;
+        let udpBind = null;
+        let connected = false;
 
-        open: (info, callback) => {
-            if (!self.next) {
-                // non-null assertion
-
-                throw Error();
+        const connectInit = (sendJson, address, port) => {
+            if (info.socket) {
+                info.socket.pause();
             }
 
-            let socket = null;
-            let tcpServer = null;
-            let udpBind = null;
-            let connected = false;
+            socket = net.createConnection({
+                host: address,
+                port: port,
+                allowHalfOpen: true,
+            }).once('connect', () => {
+                if (!socket) {
+                    // non-null assertion
 
-            const connectInit = (sendJson, address, port) => {
-                if (info.socket) {
-                    info.socket.pause();
+                    throw Error();
                 }
 
-                socket = net.createConnection({
-                    host: address,
-                    port: port,
-                    allowHalfOpen: true,
-                }).once('connect', () => {
-                    if (!socket) {
-                        // non-null assertion
+                connected = true;
 
-                        throw Error();
-                    }
+                if (fullResponse) {
+                    sendJson([
+                        'open',
+                        socket.localAddress,
+                        socket.localPort,
+                        null,
+                    ], null);
+                }
 
-                    connected = true;
+                if (info.socket) {
+                    info.socket.resume();
+                }
+            }).on('data', (dataChunk) => {
+                sendJson([
+                    'data',
+                ], dataChunk);
+            }).once('end', () => {
+                sendJson([
+                    'end',
+                ], null);
+            }).once('error', (err) => {
+                if (!socket) {
+                    // non-null assertion
 
-                    if (fullResponse) {
-                        sendJson([
-                            'open',
-                            socket.localAddress,
-                            socket.localPort,
-                            null,
-                        ], null);
-                    }
+                    throw Error();
+                }
 
-                    if (info.socket) {
-                        info.socket.resume();
-                    }
-                }).on('data', (dataChunk) => {
+                if (fullResponse && !connected && err.code) {
+                    sendJson([
+                        'open',
+                        socket.localAddress,
+                        socket.localPort,
+                        err.code,
+                    ], null);
+                }
+            }).on('error', (err) => {
+                console.error(info.id + ' tcp error');
+
+                if (config.log.network) {
+                    console.error(err);
+                }
+            });
+        };
+
+        const bindInit = (sendJson) => {
+            if (info.socket) {
+                info.socket.pause();
+            }
+
+            tcpServer = net.createServer({
+                allowHalfOpen: true,
+            }).once('listening', () => {
+                if (!tcpServer) {
+                    // non-null assertion
+
+                    throw Error();
+                }
+
+                connected = true;
+
+                const bind = tcpServer.address();
+
+                if (info.socket) {
+                    sendJson([
+                        'open',
+                        info.socket.localAddress,
+                        bind.port,
+                        null,
+                    ], null);
+                } else {
+                    sendJson([
+                        'open',
+                        bind.address,
+                        bind.port,
+                        null,
+                    ], null);
+                }
+            }).once('connection', (remoteSocket) => {
+                socket = remoteSocket.on('data', (dataChunk) => {
                     sendJson([
                         'data',
                     ], dataChunk);
@@ -78,21 +136,15 @@ module.exports = (
                     sendJson([
                         'end',
                     ], null);
-                }).once('error', (err) => {
-                    if (!socket) {
+                }).once('close', () => {
+                    if (!tcpServer) {
                         // non-null assertion
 
                         throw Error();
                     }
 
-                    if (fullResponse && !connected && err.code) {
-                        sendJson([
-                            'open',
-                            socket.localAddress,
-                            socket.localPort,
-                            err.code,
-                        ], null);
-                    }
+                    tcpServer.close();
+                    tcpServer = null;
                 }).on('error', (err) => {
                     console.error(info.id + ' tcp error');
 
@@ -100,24 +152,25 @@ module.exports = (
                         console.error(err);
                     }
                 });
-            };
 
-            const bindInit = (sendJson) => {
+                sendJson([
+                    'connection',
+                    remoteSocket.remoteAddress,
+                    remoteSocket.remotePort,
+                    null,
+                ], null);
+
                 if (info.socket) {
-                    info.socket.pause();
+                    info.socket.resume();
+                }
+            }).once('error', (err) => {
+                if (!tcpServer) {
+                    // non-null assertion
+
+                    throw Error();
                 }
 
-                tcpServer = net.createServer({
-                    allowHalfOpen: true,
-                }).once('listening', () => {
-                    if (!tcpServer) {
-                        // non-null assertion
-
-                        throw Error();
-                    }
-
-                    connected = true;
-
+                if (!connected && err.code) {
                     const bind = tcpServer.address();
 
                     if (info.socket) {
@@ -125,218 +178,154 @@ module.exports = (
                             'open',
                             info.socket.localAddress,
                             bind.port,
-                            null,
+                            err.code,
                         ], null);
                     } else {
                         sendJson([
                             'open',
                             bind.address,
                             bind.port,
-                            null,
-                        ], null);
-                    }
-                }).once('connection', (remoteSocket) => {
-                    socket = remoteSocket.on('data', (dataChunk) => {
-                        sendJson([
-                            'data',
-                        ], dataChunk);
-                    }).once('end', () => {
-                        sendJson([
-                            'end',
-                        ], null);
-                    }).once('close', () => {
-                        if (!tcpServer) {
-                            // non-null assertion
-
-                            throw Error();
-                        }
-
-                        tcpServer.close();
-                        tcpServer = null;
-                    }).on('error', (err) => {
-                        console.error(info.id + ' tcp error');
-
-                        if (config.log.network) {
-                            console.error(err);
-                        }
-                    });
-
-                    sendJson([
-                        'connection',
-                        remoteSocket.remoteAddress,
-                        remoteSocket.remotePort,
-                        null,
-                    ], null);
-
-                    if (info.socket) {
-                        info.socket.resume();
-                    }
-                }).once('error', (err) => {
-                    if (!tcpServer) {
-                        // non-null assertion
-
-                        throw Error();
-                    }
-
-                    if (!connected && err.code) {
-                        const bind = tcpServer.address();
-
-                        if (info.socket) {
-                            sendJson([
-                                'open',
-                                info.socket.localAddress,
-                                bind.port,
-                                err.code,
-                            ], null);
-                        } else {
-                            sendJson([
-                                'open',
-                                bind.address,
-                                bind.port,
-                                err.code,
-                            ], null);
-                        }
-                    }
-                }).on('error', (err) => {
-                    console.error(info.id + ' tcp server error');
-
-                    if (config.log.network) {
-                        console.error(err);
-                    }
-                }).listen();
-            };
-
-            const udpAssociateInit = (sendJson) => {
-                if (info.socket) {
-                    info.socket.pause();
-                }
-
-                udpBind = dgram.createSocket({
-                    type: 'udp6',
-                }).once('listening', () => {
-                    connected = true;
-
-                    if (fullResponse) {
-                        sendJson([
-                            'udpassociate',
-                            null,
-                        ], null);
-                    }
-
-                    if (info.socket) {
-                        info.socket.resume();
-                    }
-                }).on('message', (msg, address) => {
-                    sendJson([
-                        'message',
-                        address.address,
-                        address.port,
-                    ], msg);
-                }).once('error', (err) => {
-                    if (fullResponse && !connected && err.code) {
-                        sendJson([
-                            'udpassociate',
                             err.code,
                         ], null);
                     }
-                }).on('error', (err) => {
-                    console.error(info.id + ' udp error');
+                }
+            }).on('error', (err) => {
+                console.error(info.id + ' tcp server error');
 
-                    if (config.log.network) {
-                        console.error(err);
-                    }
-                });
+                if (config.log.network) {
+                    console.error(err);
+                }
+            }).listen();
+        };
 
-                // note: not chained according to the official docs
-                udpBind.bind();
+        const udpAssociateInit = (sendJson) => {
+            if (info.socket) {
+                info.socket.pause();
+            }
+
+            udpBind = dgram.createSocket({
+                type: 'udp6',
+            }).once('listening', () => {
+                connected = true;
+
+                if (fullResponse) {
+                    sendJson([
+                        'udpassociate',
+                        null,
+                    ], null);
+                }
+
+                if (info.socket) {
+                    info.socket.resume();
+                }
+            }).on('message', (msg, address) => {
+                sendJson([
+                    'message',
+                    address.address,
+                    address.port,
+                ], msg);
+            }).once('error', (err) => {
+                if (fullResponse && !connected && err.code) {
+                    sendJson([
+                        'udpassociate',
+                        err.code,
+                    ], null);
+                }
+            }).on('error', (err) => {
+                console.error(info.id + ' udp error');
+
+                if (config.log.network) {
+                    console.error(err);
+                }
+            });
+
+            // note: not chained according to the official docs
+            udpBind.bind();
+        };
+
+        nextPass(info, (send, close) => {
+            const sendJson = (json, chunk) => {
+                send(serialize.create(json, chunk));
             };
 
-            self.next(info, (send, close) => {
-                const sendJson = (json, chunk) => {
-                    send(serialize.create(json, chunk));
-                };
+            callback((data) => {
+                // send
 
-                callback((data) => {
-                    // send
+                const json = serialize.getJson(data);
+                const chunk = serialize.getChunk(data);
 
-                    const json = serialize.getJson(data);
-                    const chunk = serialize.getChunk(data);
+                switch (json[0]) {
+                    case 'connect':
+                        console.log(
+                            info.id + ' connect ' + json[1] + ' ' + json[2]
+                        );
 
-                    switch (json[0]) {
-                        case 'connect':
-                            console.log(
-                                info.id + ' connect ' + json[1] + ' ' + json[2]
-                            );
+                        connectInit(sendJson, json[1], json[2]);
 
-                            connectInit(sendJson, json[1], json[2]);
+                        break;
+                    case 'bind':
+                        console.log(
+                            info.id + ' bind'
+                        );
 
-                            break;
-                        case 'bind':
-                            console.log(
-                                info.id + ' bind'
-                            );
+                        bindInit(sendJson);
 
-                            bindInit(sendJson);
+                        break;
+                    case 'udpassociate':
+                        console.log(
+                            info.id + ' udpassociate'
+                        );
 
-                            break;
-                        case 'udpassociate':
-                            console.log(
-                                info.id + ' udpassociate'
-                            );
+                        udpAssociateInit(sendJson);
 
-                            udpAssociateInit(sendJson);
+                        break;
+                    case 'message':
+                        if (udpBind) {
+                            udpBind.send(chunk, json[2], json[1]);
+                        } else {
+                            throw Error();
+                        }
 
-                            break;
-                        case 'message':
-                            if (udpBind) {
-                                udpBind.send(chunk, json[2], json[1]);
-                            } else {
-                                throw Error();
-                            }
+                        break;
+                    case 'data':
+                        if (socket) {
+                            socket.write(chunk);
+                        } else {
+                            throw Error();
+                        }
 
-                            break;
-                        case 'data':
-                            if (socket) {
-                                socket.write(chunk);
-                            } else {
-                                throw Error();
-                            }
+                        break;
+                    case 'end':
+                        if (socket) {
+                            socket.end();
+                        }
 
-                            break;
-                        case 'end':
-                            if (socket) {
-                                socket.end();
-                            }
+                        if (udpBind) {
+                            udpBind.close();
+                            udpBind = null;
+                        }
 
-                            if (udpBind) {
-                                udpBind.close();
-                                udpBind = null;
-                            }
+                        break;
+                    default:
+                        // ignore
+                }
+            }, () => {
+                // close
 
-                            break;
-                        default:
-                            // ignore
-                    }
-                }, () => {
-                    // close
+                if (socket) {
+                    socket.destroy();
+                }
 
-                    if (socket) {
-                        socket.destroy();
-                    }
+                if (tcpServer) {
+                    tcpServer.close();
+                }
 
-                    if (tcpServer) {
-                        tcpServer.close();
-                    }
+                if (udpBind) {
+                    udpBind.close();
+                }
 
-                    if (udpBind) {
-                        udpBind.close();
-                    }
-
-                    close();
-                });
+                close();
             });
-        },
+        });
     };
-
-    return self;
 };

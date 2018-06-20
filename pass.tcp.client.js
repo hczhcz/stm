@@ -5,48 +5,37 @@ const net = require('net');
 const config = require('./config');
 
 module.exports = (
+    nextPass /*: Pass */,
     address /*: string */,
     port /*: number */
 ) /*: Pass */ => {
-    const self = {
-        next: null,
+    return (info, callback) => {
+        nextPass(info, (send, close) => {
+            const socket = net.createConnection({
+                host: address,
+                port: port,
+                allowHalfOpen: true,
+            }).once('connect', () => {
+                callback((data) => {
+                    // send
 
-        open: (info, callback) => {
-            if (!self.next) {
-                // non-null assertion
+                    socket.write(data);
+                }, () => {
+                    // close
 
-                throw Error();
-            }
-
-            self.next(info, (send, close) => {
-                const socket = net.createConnection({
-                    host: address,
-                    port: port,
-                    allowHalfOpen: true,
-                }).once('connect', () => {
-                    callback((data) => {
-                        // send
-
-                        socket.write(data);
-                    }, () => {
-                        // close
-
-                        socket.destroy();
-                    });
-                }).on('data', (chunk) => {
-                    send(chunk);
-                }).once('close', () => {
-                    close();
-                }).on('error', (err) => {
-                    console.error(info.id + ' tcp error');
-
-                    if (config.log.network) {
-                        console.error(err);
-                    }
+                    socket.destroy();
                 });
-            });
-        },
-    };
+            }).on('data', (chunk) => {
+                send(chunk);
+            }).once('close', () => {
+                close();
+            }).on('error', (err) => {
+                console.error(info.id + ' tcp error');
 
-    return self;
+                if (config.log.network) {
+                    console.error(err);
+                }
+            });
+        });
+    };
 };

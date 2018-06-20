@@ -10,142 +10,13 @@ const socks5 = require('./socks5');
 const socks5udp = require('./socks5.udp');
 
 module.exports = (
+    nextPass /*: Pass */,
     listenPort /*: number */,
     fullResponse /*: boolean */
 ) /*: Pass */ => {
-    const self = {
-        next: null,
-
-        open: (info, callback) => {
-            callback((data) => {
-                // send
-
-                const json = serialize.getJson(data);
-                const chunk = serialize.getChunk(data);
-
-                let bind = null;
-
-                switch (json[0]) {
-                    case 'open':
-                        if (!info.socket) {
-                            // non-null assertion
-
-                            throw Error();
-                        }
-
-                        info.socket.emit(
-                            'socks5server.open',
-                            json[1],
-                            json[2],
-                            json[3]
-                        );
-
-                        break;
-                    case 'connection':
-                        if (!info.socket) {
-                            // non-null assertion
-
-                            throw Error();
-                        }
-
-                        info.socket.emit(
-                            'socks5server.connection',
-                            json[1],
-                            json[2],
-                            json[3]
-                        );
-
-                        break;
-                    case 'udpassociate':
-                        if (!info.udpBind) {
-                            // non-null assertion
-
-                            throw Error();
-                        }
-
-                        bind = info.udpBind.address();
-
-                        if (!info.socket) {
-                            // non-null assertion
-
-                            throw Error();
-                        }
-
-                        info.socket.emit(
-                            'socks5server.udpassociate',
-                            bind.address,
-                            bind.port,
-                            json[1]
-                        );
-
-                        break;
-                    case 'message':
-                        if (!info.socket || !info.udpBind) {
-                            // non-null assertion
-
-                            throw Error();
-                        }
-
-                        info.udpBind.emit(
-                            'socks5server.message',
-                            info.udpAddress,
-                            info.udpPort,
-                            json[1],
-                            json[2],
-                            chunk
-                        );
-
-                        break;
-                    case 'data':
-                        if (!info.socket) {
-                            // non-null assertion
-
-                            throw Error();
-                        }
-
-                        info.socket.emit('socks5server.data', chunk);
-
-                        break;
-                    case 'end':
-                        if (!info.socket) {
-                            // non-null assertion
-
-                            throw Error();
-                        }
-
-                        info.socket.emit('socks5server.end');
-
-                        break;
-                    default:
-                        // ignore
-                }
-            }, () => {
-                // close
-
-                if (!info.socket) {
-                    // non-null assertion
-
-                    throw Error();
-                }
-
-                info.socket.emit('socks5server.close');
-
-                if (info.udpBind) {
-                    info.udpBind.close();
-                }
-            });
-        },
-    };
-
     net.createServer({
         allowHalfOpen: true,
     }).on('connection', (socket) => {
-        if (!self.next) {
-            // non-null assertion
-
-            throw Error();
-        }
-
         socket.pause();
 
         const info /*: Info */ = {
@@ -153,7 +24,7 @@ module.exports = (
             socket: socket,
         };
 
-        self.next(info, (send, close) => {
+        nextPass(info, (send, close) => {
             const sendJson = (json, chunk) => {
                 send(serialize.create(json, chunk));
             };
@@ -283,5 +154,123 @@ module.exports = (
         }
     }).listen(listenPort);
 
-    return self;
+    return (info, callback) => {
+        callback((data) => {
+            // send
+
+            const json = serialize.getJson(data);
+            const chunk = serialize.getChunk(data);
+
+            let bind = null;
+
+            switch (json[0]) {
+                case 'open':
+                    if (!info.socket) {
+                        // non-null assertion
+
+                        throw Error();
+                    }
+
+                    info.socket.emit(
+                        'socks5server.open',
+                        json[1],
+                        json[2],
+                        json[3]
+                    );
+
+                    break;
+                case 'connection':
+                    if (!info.socket) {
+                        // non-null assertion
+
+                        throw Error();
+                    }
+
+                    info.socket.emit(
+                        'socks5server.connection',
+                        json[1],
+                        json[2],
+                        json[3]
+                    );
+
+                    break;
+                case 'udpassociate':
+                    if (!info.udpBind) {
+                        // non-null assertion
+
+                        throw Error();
+                    }
+
+                    bind = info.udpBind.address();
+
+                    if (!info.socket) {
+                        // non-null assertion
+
+                        throw Error();
+                    }
+
+                    info.socket.emit(
+                        'socks5server.udpassociate',
+                        bind.address,
+                        bind.port,
+                        json[1]
+                    );
+
+                    break;
+                case 'message':
+                    if (!info.socket || !info.udpBind) {
+                        // non-null assertion
+
+                        throw Error();
+                    }
+
+                    info.udpBind.emit(
+                        'socks5server.message',
+                        info.udpAddress,
+                        info.udpPort,
+                        json[1],
+                        json[2],
+                        chunk
+                    );
+
+                    break;
+                case 'data':
+                    if (!info.socket) {
+                        // non-null assertion
+
+                        throw Error();
+                    }
+
+                    info.socket.emit('socks5server.data', chunk);
+
+                    break;
+                case 'end':
+                    if (!info.socket) {
+                        // non-null assertion
+
+                        throw Error();
+                    }
+
+                    info.socket.emit('socks5server.end');
+
+                    break;
+                default:
+                    // ignore
+            }
+        }, () => {
+            // close
+
+            if (!info.socket) {
+                // non-null assertion
+
+                throw Error();
+            }
+
+            info.socket.emit('socks5server.close');
+
+            if (info.udpBind) {
+                info.udpBind.close();
+            }
+        });
+    };
 };

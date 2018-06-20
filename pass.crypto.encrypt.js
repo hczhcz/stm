@@ -3,61 +3,50 @@
 const crypto = require('./crypto');
 
 module.exports = (
+    nextPass /*: Pass */,
     algorithm /*: string */,
     keyLength /*: number */,
     ivLength /*: number */,
     password /*: string */
 ) /*: Pass */ => {
-    const self = {
-        next: null,
+    return (info, callback) => {
+        const nonceLength = Math.min(keyLength + ivLength, 32);
 
-        open: (info, callback) => {
-            if (!self.next) {
-                // non-null assertion
+        const nonce = crypto.createNonce(nonceLength);
+        const cipher = crypto.createCipher(
+            algorithm,
+            keyLength,
+            ivLength,
+            password,
+            nonce
+        );
 
-                throw Error();
-            }
+        // verification info
 
-            const nonceLength = Math.min(keyLength + ivLength, 32);
+        const header = Buffer.alloc(8);
 
-            const nonce = crypto.createNonce(nonceLength);
-            const cipher = crypto.createCipher(
-                algorithm,
-                keyLength,
-                ivLength,
-                password,
-                nonce
-            );
+        header.writeUInt32BE(0xDEADBEEF, 0);
+        header.writeUInt32BE(Math.floor(Date.now() / 1000 / 60), 4);
 
-            // verification info
+        nextPass(info, (send, close) => {
+            send(nonce);
+            send(cipher.update(header));
 
-            const header = Buffer.alloc(8);
+            callback((data) => {
+                // send
 
-            header.writeUInt32BE(0xDEADBEEF, 0);
-            header.writeUInt32BE(Math.floor(Date.now() / 1000 / 60), 4);
+                send(cipher.update(data));
+            }, () => {
+                // close
 
-            self.next(info, (send, close) => {
-                send(nonce);
-                send(cipher.update(header));
+                if (cipher.final().length) {
+                    // note: should be flushed earlier
 
-                callback((data) => {
-                    // send
+                    throw Error();
+                }
 
-                    send(cipher.update(data));
-                }, () => {
-                    // close
-
-                    if (cipher.final().length) {
-                        // note: should be flushed earlier
-
-                        throw Error();
-                    }
-
-                    close();
-                });
+                close();
             });
-        },
+        });
     };
-
-    return self;
 };

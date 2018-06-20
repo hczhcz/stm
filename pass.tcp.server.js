@@ -6,45 +6,12 @@ const net = require('net');
 const config = require('./config');
 
 module.exports = (
+    nextPass /*: Pass */,
     port /*: number */
 ) /*: Pass */ => {
-    const self = {
-        next: null,
-
-        open: (info, callback) => {
-            callback((data) => {
-                // send
-
-                if (!info.socket) {
-                    // non-null assertion
-
-                    throw Error();
-                }
-
-                info.socket.write(data);
-            }, () => {
-                // close
-
-                if (!info.socket) {
-                    // non-null assertion
-
-                    throw Error();
-                }
-
-                info.socket.destroy();
-            });
-        },
-    };
-
     net.createServer({
         allowHalfOpen: true,
     }).on('connection', (socket) => {
-        if (!self.next) {
-            // non-null assertion
-
-            throw Error();
-        }
-
         socket.pause();
 
         const info = {
@@ -52,7 +19,7 @@ module.exports = (
             socket: socket,
         };
 
-        self.next(info, (send, close) => {
+        nextPass(info, (send, close) => {
             socket.on('data', (chunk) => {
                 send(chunk);
             }).once('close', () => {
@@ -73,5 +40,27 @@ module.exports = (
         }
     }).listen(port);
 
-    return self;
+    return (info, callback) => {
+        callback((data) => {
+            // send
+
+            if (!info.socket) {
+                // non-null assertion
+
+                throw Error();
+            }
+
+            info.socket.write(data);
+        }, () => {
+            // close
+
+            if (!info.socket) {
+                // non-null assertion
+
+                throw Error();
+            }
+
+            info.socket.destroy();
+        });
+    };
 };

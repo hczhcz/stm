@@ -42,34 +42,28 @@ Here is an example pass file:
 ```javascript
 // pass.mypass.js
 
-module.exports = () => {
-    const self = {
-        next: null,
+module.exports = (nextPass) => {
+    return (info, callback) => {
+        nextPass(info, (send, close) => {
+            callback((data) => {
+                // send
 
-        open: (info, callback) => {
-            self.next(info, (send, close) => {
-                callback((data) => {
-                    // send
+                // TODO: modify the data buffer
+                // example: flip every bit in the buffer
+                for (let i = 0; i < data.length; i += 1) {
+                    data[i] = ~data[i]
+                }
 
-                    // TODO: modify the data buffer
-                    // example: flip every bit in the buffer
-                    for (let i = 0; i < data.length; i += 1) {
-                        data[i] = ~data[i]
-                    }
+                send(data);
+            }, () => {
+                // close
 
-                    send(data);
-                }, () => {
-                    // close
+                // TODO: do some cleanup here
 
-                    // TODO: do some cleanup here
-
-                    close();
-                });
+                close();
             });
-        },
+        });
     };
-
-    return self;
 };
 ```
 
