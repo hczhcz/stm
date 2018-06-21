@@ -15,7 +15,7 @@ module.exports = (
             level: level,
         }).on('data', (chunk) => {
             next.next(chunk);
-        }).on('close', () => {
+        }).once('close', () => {
             next.next(null);
         });
 

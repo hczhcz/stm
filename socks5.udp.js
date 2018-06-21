@@ -7,7 +7,7 @@ const socks5write = require('./socks5.write');
 const init = (
     socket /*: dgram$Socket */
 ) /*: void */ => {
-    socket.on('message', (msg, address) => {
+    socket.on('message', (msg, rinfo) => {
         let parseDone = false;
         let i = 0;
 
@@ -21,8 +21,8 @@ const init = (
 
                 socket.emit(
                     'socks5client.message',
-                    address.address,
-                    address.port,
+                    rinfo.address,
+                    rinfo.port,
                     socks5address.stringify(task),
                     task.port,
                     msg.slice(i + 1)

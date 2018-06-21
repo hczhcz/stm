@@ -239,11 +239,11 @@ module.exports = (
                 if (info.socket) {
                     info.socket.resume();
                 }
-            }).on('message', (msg, address) => {
+            }).on('message', (msg, rinfo) => {
                 sendJson([
                     'message',
-                    address.address,
-                    address.port,
+                    rinfo.address,
+                    rinfo.port,
                 ], msg);
             }).once('error', (err) => {
                 if (fullResponse && !connected && err.code) {

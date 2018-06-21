@@ -13,7 +13,7 @@ module.exports = (
             finishFlush: zlib.constants.Z_SYNC_FLUSH,
         }).on('data', (chunk) => {
             next.next(chunk);
-        }).on('close', () => {
+        }).once('close', () => {
             next.next(null);
         });
 

@@ -47,13 +47,13 @@ module.exports = (
             }
 
             sendJson(['data'], chunk);
-        }).on('httpclient.end', () => {
+        }).once('httpclient.end', () => {
             if (config.log.transfer) {
                 console.error(info.id + ' http end');
             }
 
             sendJson(['end'], null);
-        }).on('httpclient.close', () => {
+        }).once('httpclient.close', () => {
             if (config.log.transfer) {
                 console.error(info.id + ' http close');
             }
