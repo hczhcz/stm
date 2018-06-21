@@ -32,8 +32,17 @@ module.exports = (
 
         next.next();
 
+        const firstData = yield;
+
+        if (firstData === null) {
+            next.next(null);
+
+            return;
+        }
+
         next.next(nonce);
         next.next(cipher.update(header));
+        next.next(cipher.update(firstData));
 
         for (let data = yield; data !== null; data = yield) {
             next.next(cipher.update(data));

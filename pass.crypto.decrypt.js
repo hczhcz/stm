@@ -23,7 +23,9 @@ module.exports = (
 
         next.next();
 
-        for (let data = yield; buffer.length >= nonceLength; data = yield) {
+        while (buffer.length < nonceLength) {
+            const data = yield;
+
             if (data === null) {
                 next.next(null);
 
@@ -44,7 +46,9 @@ module.exports = (
 
         buffer = decipher.update(buffer.slice(nonceLength));
 
-        for (let data = yield; buffer.length; data = yield) {
+        while (buffer.length < 8) {
+            const data = yield;
+
             if (data === null) {
                 next.next(null);
 
@@ -77,6 +81,8 @@ module.exports = (
             && !(nonceString in nonceSet[timestamp])
         ) {
             nonceSet[timestamp][nonceString] = true;
+
+            next.next(buffer);
 
             for (let data = yield; data !== null; data = yield) {
                 next.next(decipher.update(data));

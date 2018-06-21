@@ -38,6 +38,8 @@ module.exports = (
         const firstData = yield;
 
         if (firstData === null) {
+            next.next(null);
+
             return;
         }
 
