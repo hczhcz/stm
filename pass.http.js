@@ -79,6 +79,14 @@ module.exports = (
     }).listen(listenPort);
 
     return function *(info) {
+        if (!info.socket) {
+            // non-null assertion
+
+            throw Error();
+        }
+
+        const socket = info.socket;
+
         // TODO: 2-stage
 
         for (let data = yield; data !== null; data = yield) {
@@ -87,23 +95,11 @@ module.exports = (
 
             switch (json[0]) {
                 case 'data':
-                    if (!info.socket) {
-                        // non-null assertion
-
-                        throw Error();
-                    }
-
-                    info.socket.emit('httpserver.data', chunk);
+                    socket.emit('httpserver.data', chunk);
 
                     break;
                 case 'end':
-                    if (!info.socket) {
-                        // non-null assertion
-
-                        throw Error();
-                    }
-
-                    info.socket.emit('httpserver.end');
+                    socket.emit('httpserver.end');
 
                     break;
                 default:
@@ -111,12 +107,6 @@ module.exports = (
             }
         }
 
-        if (!info.socket) {
-            // non-null assertion
-
-            throw Error();
-        }
-
-        info.socket.emit('httpserver.close');
+        socket.emit('httpserver.close');
     };
 };

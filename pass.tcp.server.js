@@ -43,22 +43,19 @@ module.exports = (
     }).listen(port);
 
     return function *(info) {
-        for (let data = yield; data !== null; data = yield) {
-            if (!info.socket) {
-                // non-null assertion
-
-                throw Error();
-            }
-
-            info.socket.write(data);
-        }
-
         if (!info.socket) {
             // non-null assertion
 
             throw Error();
         }
 
-        info.socket.destroy();
+        const socket = info.socket;
+
+        for (let data = yield; data !== null; data = yield) {
+
+            socket.write(data);
+        }
+
+        socket.destroy();
     };
 };

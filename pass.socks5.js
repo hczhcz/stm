@@ -157,6 +157,14 @@ module.exports = (
     }).listen(listenPort);
 
     return function *(info) {
+        if (!info.socket) {
+            // non-null assertion
+
+            throw Error();
+        }
+
+        const socket = info.socket;
+
         // TODO: 2-stage
 
         for (let data = yield; data !== null; data = yield) {
@@ -167,13 +175,7 @@ module.exports = (
 
             switch (json[0]) {
                 case 'open':
-                    if (!info.socket) {
-                        // non-null assertion
-
-                        throw Error();
-                    }
-
-                    info.socket.emit(
+                    socket.emit(
                         'socks5server.open',
                         json[1],
                         json[2],
@@ -182,13 +184,7 @@ module.exports = (
 
                     break;
                 case 'connection':
-                    if (!info.socket) {
-                        // non-null assertion
-
-                        throw Error();
-                    }
-
-                    info.socket.emit(
+                    socket.emit(
                         'socks5server.connection',
                         json[1],
                         json[2],
@@ -205,13 +201,7 @@ module.exports = (
 
                     bind = info.udpBind.address();
 
-                    if (!info.socket) {
-                        // non-null assertion
-
-                        throw Error();
-                    }
-
-                    info.socket.emit(
+                    socket.emit(
                         'socks5server.udpassociate',
                         bind.address,
                         bind.port,
@@ -220,7 +210,7 @@ module.exports = (
 
                     break;
                 case 'message':
-                    if (!info.socket || !info.udpBind) {
+                    if (!info.udpBind) {
                         // non-null assertion
 
                         throw Error();
@@ -237,23 +227,11 @@ module.exports = (
 
                     break;
                 case 'data':
-                    if (!info.socket) {
-                        // non-null assertion
-
-                        throw Error();
-                    }
-
-                    info.socket.emit('socks5server.data', chunk);
+                    socket.emit('socks5server.data', chunk);
 
                     break;
                 case 'end':
-                    if (!info.socket) {
-                        // non-null assertion
-
-                        throw Error();
-                    }
-
-                    info.socket.emit('socks5server.end');
+                    socket.emit('socks5server.end');
 
                     break;
                 default:
@@ -261,13 +239,7 @@ module.exports = (
             }
         }
 
-        if (!info.socket) {
-            // non-null assertion
-
-            throw Error();
-        }
-
-        info.socket.emit('socks5server.close');
+        socket.emit('socks5server.close');
 
         if (info.udpBind) {
             info.udpBind.close();
