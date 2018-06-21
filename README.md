@@ -43,26 +43,23 @@ Here is an example pass file:
 // pass.mypass.js
 
 module.exports = (nextPass) => {
-    return (info, callback) => {
-        nextPass(info, (send, close) => {
-            callback((data) => {
-                // send
+    return function *(info) {
+        const next = nextPass(info);
 
-                // TODO: modify the data buffer
-                // example: flip every bit in the buffer
-                for (let i = 0; i < data.length; i += 1) {
-                    data[i] = ~data[i]
-                }
+        next.next(); // ready
 
-                send(data);
-            }, () => {
-                // close
+        for (let data = yield; data !== null; data = yield) {
+            // TODO: modify the data buffer
+            // example: flip every bit in the buffer
 
-                // TODO: do some cleanup here
+            for (let i = 0; i < data.length; i += 1) {
+                data[i] = ~data[i]
+            }
 
-                close();
-            });
-        });
+            next.next(data); // send
+        }
+
+        next.next(null); // end
     };
 };
 ```
