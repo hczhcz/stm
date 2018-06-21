@@ -79,7 +79,7 @@ module.exports = (
                 info.udpAddress = rinfo.address;
                 info.udpPort = rinfo.port;
 
-                sendJson(['message', address, port], null);
+                sendJson(['message', address, port], msg);
             }).on('error', (err) => {
                 console.error(info.id + ' udp error');
 
