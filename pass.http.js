@@ -25,6 +25,8 @@ module.exports = (
             next.next(serialize.create(json, chunk));
         };
 
+        next.next();
+
         http.accept(socket);
 
         socket.on('error', (err) => {
@@ -66,8 +68,6 @@ module.exports = (
         }).on('http.error', (step) => {
             console.error(info.id + ' http error ' + step);
         });
-
-        next.next();
     }).on('error', (err) => {
         console.error('tcp server error');
 

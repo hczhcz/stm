@@ -19,6 +19,8 @@ module.exports = (
 
         const next = nextPass(info);
 
+        next.next();
+
         socket.on('data', (chunk) => {
             next.next(chunk);
         }).once('close', () => {
@@ -30,8 +32,6 @@ module.exports = (
                 console.error(err);
             }
         });
-
-        next.next();
     }).on('error', (err) => {
         console.error('tcp server error');
 

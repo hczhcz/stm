@@ -28,6 +28,8 @@ module.exports = (
             next.next(serialize.create(json, chunk));
         };
 
+        next.next();
+
         socks5.accept(socket);
 
         socket.on('error', (err) => {
@@ -144,8 +146,6 @@ module.exports = (
         }).on('socks5.error', (step) => {
             console.error(info.id + ' socks5 tcp error ' + step);
         });
-
-        next.next();
     }).on('error', (err) => {
         console.error('tcp server error');
 
