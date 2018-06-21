@@ -47,7 +47,7 @@ module.exports = (
         let tcpServer = null;
         let udpBind = null;
 
-        const connectInit = (sendJson, address, port) => {
+        const connectInit = (address, port) => {
             let connected = false;
 
             if (info.socket) {
@@ -111,7 +111,7 @@ module.exports = (
             });
         };
 
-        const bindInit = (sendJson) => {
+        const bindInit = () => {
             let connected = false;
 
             if (info.socket) {
@@ -217,7 +217,7 @@ module.exports = (
             }).listen();
         };
 
-        const udpAssociateInit = (sendJson) => {
+        const udpAssociateInit = () => {
             let connected = false;
 
             if (info.socket) {
@@ -270,7 +270,7 @@ module.exports = (
                     info.id + ' connect ' + firstJson[1] + ' ' + firstJson[2]
                 );
 
-                connectInit(sendJson, firstJson[1], firstJson[2]);
+                connectInit(firstJson[1], firstJson[2]);
 
                 break;
             case 'bind':
@@ -278,7 +278,7 @@ module.exports = (
                     info.id + ' bind'
                 );
 
-                bindInit(sendJson);
+                bindInit();
 
                 break;
             case 'udpassociate':
@@ -286,7 +286,7 @@ module.exports = (
                     info.id + ' udpassociate'
                 );
 
-                udpAssociateInit(sendJson);
+                udpAssociateInit();
 
                 break;
             default:

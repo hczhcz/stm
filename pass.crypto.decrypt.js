@@ -23,7 +23,7 @@ module.exports = (
 
         next.next();
 
-        for (let data = yield; true; data = yield) {
+        for (let data = yield; buffer.length >= nonceLength; data = yield) {
             if (data === null) {
                 next.next(null);
 
@@ -31,30 +31,20 @@ module.exports = (
             }
 
             buffer = Buffer.concat([buffer, data]);
-
-            if (buffer.length >= nonceLength) {
-                nonce = buffer.slice(0, nonceLength);
-                decipher = crypto.createDecipher(
-                    algorithm,
-                    keyLength,
-                    ivLength,
-                    password,
-                    nonce
-                );
-
-                buffer = decipher.update(buffer.slice(nonceLength));
-
-                break;
-            }
         }
 
-        if (!nonce || !decipher) {
-            // non-null assertion
+        nonce = buffer.slice(0, nonceLength);
+        decipher = crypto.createDecipher(
+            algorithm,
+            keyLength,
+            ivLength,
+            password,
+            nonce
+        );
 
-            throw Error();
-        }
+        buffer = decipher.update(buffer.slice(nonceLength));
 
-        for (let data = yield; true; data = yield) {
+        for (let data = yield; buffer.length; data = yield) {
             if (data === null) {
                 next.next(null);
 
@@ -62,51 +52,41 @@ module.exports = (
             }
 
             buffer = Buffer.concat([buffer, decipher.update(data)]);
+        }
 
-            if (buffer.length >= 8) {
-                const magic = buffer.readUInt32BE(0);
-                const timestamp = buffer.readUInt32BE(4);
+        const magic = buffer.readUInt32BE(0);
+        const timestamp = buffer.readUInt32BE(4);
 
-                buffer = buffer.slice(8);
+        buffer = buffer.slice(8);
 
-                const nonceString = '#' + nonce.toString('hex');
-                const now = Math.floor(Date.now() / 1000 / 60);
+        const nonceString = '#' + nonce.toString('hex');
+        const now = Math.floor(Date.now() / 1000 / 60);
 
-                // TODO: move to a new function
+        // TODO: move to a new function
 
-                const oldNonceSet = nonceSet;
+        const oldNonceSet = nonceSet;
 
-                nonceSet = {};
-                nonceSet[now - 1] = oldNonceSet[now - 1] || {};
-                nonceSet[now] = oldNonceSet[now] || {};
-                nonceSet[now + 1] = oldNonceSet[now + 1] || {};
+        nonceSet = {};
+        nonceSet[now - 1] = oldNonceSet[now - 1] || {};
+        nonceSet[now] = oldNonceSet[now] || {};
+        nonceSet[now + 1] = oldNonceSet[now + 1] || {};
 
-                if (
-                    magic === 0xDEADBEEF
-                    && timestamp in nonceSet
-                    && !(nonceString in nonceSet[timestamp])
-                ) {
-                    nonceSet[timestamp][nonceString] = true;
+        if (
+            magic === 0xDEADBEEF
+            && timestamp in nonceSet
+            && !(nonceString in nonceSet[timestamp])
+        ) {
+            nonceSet[timestamp][nonceString] = true;
 
-                    next.next(buffer);
-
-                    break;
-                } else {
-                    next.next(null);
-
-                    return;
-                }
+            for (let data = yield; data !== null; data = yield) {
+                next.next(decipher.update(data));
             }
-        }
 
-        for (let data = yield; data !== null; data = yield) {
-            next.next(decipher.update(data));
-        }
+            if (decipher.final().length) {
+                // note: should be flushed earlier
 
-        if (decipher.final().length) {
-            // note: should be flushed earlier
-
-            throw Error();
+                throw Error();
+            }
         }
 
         next.next(null);

@@ -52,7 +52,6 @@ module.exports = (
         const socket = info.socket;
 
         for (let data = yield; data !== null; data = yield) {
-
             socket.write(data);
         }
 
