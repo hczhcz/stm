@@ -29,12 +29,27 @@ module.exports = (
     return function *(info) {
         const next = nextPass(info);
 
+        const sendJson = (json, chunk) => {
+            next.next(serialize.create(json, chunk));
+        };
+
+        next.next();
+
+        const firstData = yield;
+
+        if (firstData === null) {
+            return;
+        }
+
+        const firstJson = serialize.getJson(firstData);
+
         let socket = null;
         let tcpServer = null;
         let udpBind = null;
-        let connected = false;
 
         const connectInit = (sendJson, address, port) => {
+            let connected = false;
+
             if (info.socket) {
                 info.socket.pause();
             }
@@ -97,6 +112,8 @@ module.exports = (
         };
 
         const bindInit = (sendJson) => {
+            let connected = false;
+
             if (info.socket) {
                 info.socket.pause();
             }
@@ -201,6 +218,8 @@ module.exports = (
         };
 
         const udpAssociateInit = (sendJson) => {
+            let connected = false;
+
             if (info.socket) {
                 info.socket.pause();
             }
@@ -245,62 +264,61 @@ module.exports = (
             udpBind.bind();
         };
 
-        const sendJson = (json, chunk) => {
-            next.next(serialize.create(json, chunk));
-        };
+        switch (firstJson[0]) {
+            case 'connect':
+                console.log(
+                    info.id + ' connect ' + firstJson[1] + ' ' + firstJson[2]
+                );
 
-        next.next();
+                connectInit(sendJson, firstJson[1], firstJson[2]);
 
-        // TODO: 2-stage
+                break;
+            case 'bind':
+                console.log(
+                    info.id + ' bind'
+                );
+
+                bindInit(sendJson);
+
+                break;
+            case 'udpassociate':
+                console.log(
+                    info.id + ' udpassociate'
+                );
+
+                udpAssociateInit(sendJson);
+
+                break;
+            default:
+                throw Error();
+        }
 
         for (let data = yield; data !== null; data = yield) {
             const json = serialize.getJson(data);
             const chunk = serialize.getChunk(data);
 
             switch (json[0]) {
-                case 'connect':
-                    console.log(
-                        info.id + ' connect ' + json[1] + ' ' + json[2]
-                    );
-
-                    connectInit(sendJson, json[1], json[2]);
-
-                    break;
-                case 'bind':
-                    console.log(
-                        info.id + ' bind'
-                    );
-
-                    bindInit(sendJson);
-
-                    break;
-                case 'udpassociate':
-                    console.log(
-                        info.id + ' udpassociate'
-                    );
-
-                    udpAssociateInit(sendJson);
-
-                    break;
                 case 'message':
                     if (udpBind) {
                         udpBind.send(chunk, json[2], json[1]);
-                    } else {
-                        throw Error();
                     }
 
                     break;
                 case 'data':
                     if (socket) {
                         socket.write(chunk);
-                    } else {
-                        throw Error();
                     }
 
                     break;
                 case 'end':
                     if (socket) {
                         socket.end();
+                        socket = null;
+                    }
+
+                    if (tcpServer) {
+                        tcpServer.close();
+                        tcpServer = null;
                     }
 
                     if (udpBind) {
@@ -310,7 +328,7 @@ module.exports = (
 
                     break;
                 default:
-                    // ignore
+                    throw Error();
             }
         }
 
