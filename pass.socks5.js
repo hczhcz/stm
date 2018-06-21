@@ -17,8 +17,6 @@ module.exports = (
     net.createServer({
         allowHalfOpen: true,
     }).on('connection', (socket) => {
-        socket.pause();
-
         const info /*: Info */ = {
             id: crypto.randomBytes(2).toString('hex'),
             socket: socket,
@@ -145,7 +143,7 @@ module.exports = (
             }
         }).on('socks5.error', (step) => {
             console.error(info.id + ' socks5 tcp error ' + step);
-        }).resume();
+        });
 
         next.next();
     }).on('error', (err) => {

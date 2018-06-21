@@ -12,8 +12,6 @@ module.exports = (
     net.createServer({
         allowHalfOpen: true,
     }).on('connection', (socket) => {
-        socket.pause();
-
         const info = {
             id: crypto.randomBytes(2).toString('hex'),
             socket: socket,
@@ -31,7 +29,7 @@ module.exports = (
             if (config.log.network) {
                 console.error(err);
             }
-        }).resume();
+        });
 
         next.next();
     }).on('error', (err) => {
