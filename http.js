@@ -96,7 +96,7 @@ const accept = (
     const handleHeader = (method, target, httpVersion) => {
         return httpParse.parseHeader(
             (headers) => {
-                // next
+                // done
 
                 socket.emit('http.step', 'header');
 
@@ -113,6 +113,7 @@ const accept = (
                 // parse error
 
                 socket.emit('http.error', 'parse');
+
                 socket.end();
             }
         );
@@ -120,17 +121,17 @@ const accept = (
 
     const handleStartLine = () => {
         return httpParse.parseStartLine(
-            (method, target, httpVersion) => {
-                // next
+            handleHeader,
+            () => {
+                // done
 
                 socket.emit('http.step', 'startline');
-
-                return handleHeader(method, target, httpVersion);
             },
             () => {
                 // parse error
 
                 socket.emit('http.error', 'parse');
+
                 socket.end();
             }
         );

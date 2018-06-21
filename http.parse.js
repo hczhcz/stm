@@ -2,6 +2,7 @@
 
 const parseStartLine = function *(
     next /*: (string, string, string) => Generator<void, void, string> */,
+    done /*: () => void */,
     parseError /*: () => void */
 ) /*: Generator<void, void, string> */ {
     const line = yield;
@@ -11,6 +12,8 @@ const parseStartLine = function *(
     );
 
     if (startLine) {
+        done();
+
         yield *next(startLine[1], startLine[2], startLine[3]);
     } else {
         parseError();
@@ -18,7 +21,7 @@ const parseStartLine = function *(
 };
 
 const parseHeader = function *(
-    next /*: (Array<Array<string>>) => void */,
+    done /*: (Array<Array<string>>) => void */,
     parseError /*: () => void */
 ) /*: Generator<void, void, string> */ {
     const headers = [];
@@ -27,7 +30,7 @@ const parseHeader = function *(
         const line = yield;
 
         if (line === '') {
-            next(headers);
+            done(headers);
 
             break;
         } else if (line[0] === ' ' || line[0] === '\t') {

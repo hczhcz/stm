@@ -77,7 +77,7 @@ const accept = (
     const handleRequest = () => {
         return socks5parse.parseRequest(
             (task) => {
-                // next
+                // done
 
                 socket.emit('socks5.step', 'request');
 
@@ -130,29 +130,29 @@ const accept = (
 
     const handleAuth = () => {
         return socks5parse.parseAuth(
+            handleRequest,
             () => {
-                // next
+                // done
 
                 socket.emit('socks5.step', 'auth');
 
                 // method: no authentication required
                 socks5write.writeAuth(socket, 0x00);
-
-                return handleRequest();
             },
             () => {
                 // auth error
 
+                socket.emit('socks5.error', 'auth');
+
                 // method: no acceptable methods
                 socks5write.writeAuth(socket, 0xFF);
-
-                socket.emit('socks5.error', 'auth');
                 socket.end();
             },
             () => {
                 // parse error
 
                 socket.emit('socks5.error', 'parse');
+
                 socket.end();
             }
         );

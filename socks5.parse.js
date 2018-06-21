@@ -2,6 +2,7 @@
 
 const parseAuth = function *(
     next /*: () => Generator<void, void, number> */,
+    done /*: () => void */,
     authError /*: () => void */,
     parseError /*: () => void */
 ) /*: Generator<void, void, number> */ {
@@ -25,6 +26,8 @@ const parseAuth = function *(
     }
 
     if (auth) {
+        done();
+
         yield *next();
     } else {
         authError();
@@ -32,7 +35,7 @@ const parseAuth = function *(
 };
 
 const parseRequest = function *(
-    next /*: (Task) => void */,
+    done /*: (Task) => void */,
     commandError /*: () => void */,
     addressError /*: () => void */,
     parseError /*: () => void */
@@ -110,11 +113,11 @@ const parseRequest = function *(
 
     task.port = ((yield) << 8) + (yield);
 
-    next(task);
+    done(task);
 };
 
 const parseUDP = function *(
-    next /*: (Task) => void */,
+    done /*: (Task) => void */,
     fragmentError /*: () => void */,
     addressError /*: () => void */,
     parseError /*: () => void */
@@ -172,7 +175,7 @@ const parseUDP = function *(
 
     task.port = ((yield) << 8) + (yield);
 
-    next(task);
+    done(task);
 };
 
 module.exports = {
