@@ -29,6 +29,10 @@ module.exports = (
 
             next.next();
 
+            console.log(
+                info.id + ' nat tcp connect ' + address + ' ' + port
+            );
+
             sendJson(['connect', address, port], null);
 
             socket.on('data', (chunk) => {
@@ -76,8 +80,17 @@ module.exports = (
             }).once('listening', () => {
                 sendJson(['udpassociate'], null);
             }).on('message', (msg, rinfo) => {
-                info.udpAddress = rinfo.address;
-                info.udpPort = rinfo.port;
+                if (
+                    info.udpAddress !== rinfo.address
+                    || info.udpPort !== rinfo.port
+                ) {
+                    console.log(
+                        info.id + ' nat udp connect ' + address + ' ' + port
+                    );
+
+                    info.udpAddress = rinfo.address;
+                    info.udpPort = rinfo.port;
+                }
 
                 sendJson(['message', address, port], msg);
             }).on('error', (err) => {
