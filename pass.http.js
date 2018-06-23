@@ -36,11 +36,15 @@ module.exports = (
                 console.error(err);
             }
         }).once('httpclient.request', (address, port) => {
-            console.log(info.id + ' http request ' + address + ' ' + port);
+            console.log(
+                info.id + ' http request ' + address + ' ' + port
+            );
 
             sendJson(['connect', address, port], null);
         }).once('httpclient.connect', (address, port) => {
-            console.log(info.id + ' http connect ' + address + ' ' + port);
+            console.log(
+                info.id + ' http connect ' + address + ' ' + port
+            );
 
             sendJson(['connect', address, port], null);
         }).on('httpclient.data', (chunk) => {

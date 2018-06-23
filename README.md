@@ -68,7 +68,7 @@ Now, we have a `Pass` structure that flips every bit in the data go through it.
 
 Then, add new modes to `config.js`.
 
-Here is an simple example:
+Here is a simple example:
 
 ```javascript
 mylocalmode: [
