@@ -11,14 +11,20 @@ const runMode = (
     const configList = config.modes[mode];
     const passList = [];
 
-    for (let i /*: number */ = 1; i < configList.length; i += 1) {
-        const nextIndex = i;
-        const argList = [(
+    // TODO: remove extra '(' ')' in type notation
+    const makeNextPass = (
+        index /*: number */
+    ) /*: ((Info, Pass) => void) */ => {
+        return (
             info /*: Info */,
             callback /*: Pass */
         ) /*: void */ => {
-            return passList[nextIndex](info, callback);
-        }];
+            return passList[index](info, callback);
+        };
+    };
+
+    for (let i /*: number */ = 1; i < configList.length; i += 1) {
+        const argList = [makeNextPass(i)];
 
         for (let j /*: number */ = 1; j < configList[i].length; j += 1) {
             if (
