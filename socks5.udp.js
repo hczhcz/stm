@@ -9,7 +9,7 @@ const init = (
 ) /*: void */ => {
     socket.on('message', (
         msg /*: Buffer */,
-        rinfo
+        rinfo /*: dgram$Socket$rinfo */
     ) /*: void */ => {
         let parseDone /*: boolean */ = false;
         let i /*: number */ = 0;

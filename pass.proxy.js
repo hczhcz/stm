@@ -268,7 +268,7 @@ module.exports = (
                 }
             }).on('message', (
                 msg /*: Buffer */,
-                rinfo
+                rinfo /*: dgram$Socket$rinfo */
             ) /*: void */ => {
                 sendJson([
                     'message',

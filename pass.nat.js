@@ -103,7 +103,7 @@ module.exports = (
                 sendJson(['udpassociate'], null);
             }).on('message', (
                 msg /*: Buffer */,
-                rinfo
+                rinfo /*: dgram$Socket$rinfo */
             ) /*: void */ => {
                 if (
                     info.udpAddress !== rinfo.address
