@@ -4,20 +4,23 @@ const config = require('./config');
 
 const runMode = (
     mode /*: string */,
-    args /*: any */
+    args /*: Args */
 ) /*: void */ => {
     console.log('mode ' + mode);
 
     const configList = config.modes[mode];
     const passList = [];
 
-    for (let i = 1; i < configList.length; i += 1) {
+    for (let i /*: number */ = 1; i < configList.length; i += 1) {
         const nextIndex = i;
-        const argList = [(info, callback) => {
+        const argList = [(
+            info /*: Info */,
+            callback /*: Pass */
+        ) /*: void */ => {
             return passList[nextIndex](info, callback);
         }];
 
-        for (let j = 1; j < configList[i].length; j += 1) {
+        for (let j /*: number */ = 1; j < configList[i].length; j += 1) {
             if (
                 typeof configList[i][j] === 'string'
                 && configList[i][j][0] === '-'

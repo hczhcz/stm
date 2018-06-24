@@ -7,76 +7,103 @@ const socks5write = require('./socks5.write');
 const accept = (
     socket /*: net$Socket */
 ) /*: void */ => {
-    let parseDone = false;
+    let parseDone /*: boolean */ = false;
 
-    const waitAddress = (callback) => {
-        return (address, port, code) => {
-            if (code) {
-                socks5write.writeErrorTCP(socket, code);
-                socket.end();
-            } else {
+    // TODO: remove extra '(' ')' in type notation
+    const waitAddress = (
+        callback /*: () => void */
+    ) /*: ((string, number, string) => void) */ => {
+        return (
+            address /*: string */,
+            port /*: number */,
+            code /*: string | null */
+        ) /*: void */ => {
+            if (code === null) {
                 const task = socks5address.parse(address, port);
 
                 socks5write.writeReply(socket, task);
 
                 callback();
+            } else {
+                socks5write.writeErrorTCP(socket, code);
+                socket.end();
             }
         };
     };
 
-    const establish = () => {
+    const establish = () /*: void */ => {
         socket.emit('socks5.step', 'establish');
 
-        socket.on('data', (chunk) => {
+        socket.on('data', (
+            chunk /*: Buffer */
+        ) /*: void */ => {
             socket.emit('socks5client.data', chunk);
-        }).once('end', () => {
+        }).once('end', () /*: void */ => {
             socket.emit('socks5client.end');
-        }).once('close', () => {
+        }).once('close', () /*: void */ => {
             socket.emit('socks5client.close');
-        }).on('socks5server.data', (chunk) => {
+        }).on('socks5server.data', (
+            chunk /*: Buffer */
+        ) /*: void */ => {
             socket.write(chunk);
-        }).once('socks5server.end', () => {
+        }).once('socks5server.end', () /*: void */ => {
             socket.end();
-        }).once('socks5server.close', () => {
+        }).once('socks5server.close', () /*: void */ => {
             socket.destroy();
         }).resume();
     };
 
-    const connect = (task) => {
-        socket.pause().once('socks5server.open', waitAddress(() => {
-            establish();
-        })).emit(
+    const connect = (
+        task /*: Task */
+    ) /*: void */ => {
+        socket.pause().once('socks5server.open', waitAddress(
+            () /*: void */ => {
+                establish();
+            }
+        )).emit(
             'socks5client.connect',
             socks5address.stringify(task),
             task.port
         );
     };
 
-    const bind = (task) => {
-        socket.pause().once('socks5server.open', waitAddress(() => {
-            socket.once('socks5server.connection', waitAddress(() => {
-                establish();
-            }));
-        })).emit(
+    const bind = (
+        task /*: Task */
+    ) /*: void */ => {
+        socket.pause().once('socks5server.open', waitAddress(
+            () /*: void */ => {
+                socket.once('socks5server.connection', waitAddress(
+                    () /*: void */ => {
+                        establish();
+                    }
+                ));
+            }
+        )).emit(
             'socks5client.bind',
             socks5address.stringify(task),
             task.port
         );
     };
 
-    const udpAssociate = (task) => {
-        socket.pause().once('socks5server.udpassociate', waitAddress(() => {
-            establish();
-        })).emit(
+    const udpAssociate = (
+        task /*: Task */
+    ) /*: void */ => {
+        socket.pause().once('socks5server.udpassociate', waitAddress(
+            () /*: void */ => {
+                establish();
+            }
+        )).emit(
             'socks5client.udpassociate',
             socks5address.stringify(task),
             task.port
         );
     };
 
-    const handleRequest = () => {
+    const handleRequest = () /*: Generator<void, void, number> */ => {
         return socks5parse.parseRequest(
-            (task) => {
+            (
+                task /*: Task */
+            ) /*: void */ => {
                 // done
 
                 socket.emit('socks5.step', 'request');
@@ -101,7 +128,7 @@ const accept = (
                         throw Error();
                 }
             },
-            () => {
+            () /*: void */ => {
                 // command error
 
                 // reply: command not supported
@@ -110,7 +137,7 @@ const accept = (
                 socket.emit('socks5.error', 'command');
                 socket.end();
             },
-            () => {
+            () /*: void */ => {
                 // address error
 
                 // reply: address type not supported
@@ -119,7 +146,7 @@ const accept = (
                 socket.emit('socks5.error', 'address');
                 socket.end();
             },
-            () => {
+            () /*: void */ => {
                 // parse error
 
                 socket.emit('socks5.error', 'parse');
@@ -128,10 +155,10 @@ const accept = (
         );
     };
 
-    const handleAuth = () => {
+    const handleAuth = () /*: Generator<void, void, number> */ => {
         return socks5parse.parseAuth(
             handleRequest,
-            () => {
+            () /*: void */ => {
                 // done
 
                 socket.emit('socks5.step', 'auth');
@@ -139,7 +166,7 @@ const accept = (
                 // method: no authentication required
                 socks5write.writeAuth(socket, 0x00);
             },
-            () => {
+            () /*: void */ => {
                 // auth error
 
                 socket.emit('socks5.error', 'auth');
@@ -148,7 +175,7 @@ const accept = (
                 socks5write.writeAuth(socket, 0xFF);
                 socket.end();
             },
-            () => {
+            () /*: void */ => {
                 // parse error
 
                 socket.emit('socks5.error', 'parse');
@@ -162,9 +189,11 @@ const accept = (
 
     handler.next();
 
-    socket.on('data', (chunk) => {
+    socket.on('data', (
+        chunk /*: Buffer */
+    ) /*: void */ => {
         if (!parseDone) {
-            for (let i = 0; i < chunk.length; i += 1) {
+            for (let i /*: number */ = 0; i < chunk.length; i += 1) {
                 handler.next(chunk[i]);
 
                 if (parseDone) {

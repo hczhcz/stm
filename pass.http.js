@@ -13,7 +13,9 @@ module.exports = (
 ) /*: Pass */ => {
     net.createServer({
         allowHalfOpen: true,
-    }).on('connection', (socket) => {
+    }).on('connection', (
+        socket /*: net$Socket */
+    ) /*: void */ => {
         const info = {
             id: crypto.randomBytes(2).toString('hex'),
             socket: socket,
@@ -21,7 +23,10 @@ module.exports = (
 
         const next = nextPass(info);
 
-        const sendJson = (json, chunk) => {
+        const sendJson = (
+            json /*: Command */,
+            chunk /*: Buffer | null */
+        ) /*: void */ => {
             next.next(serialize.create(json, chunk));
         };
 
@@ -29,50 +34,66 @@ module.exports = (
 
         http.accept(socket);
 
-        socket.on('error', (err) => {
+        socket.on('error', (
+            err /*: error */
+        ) /*: void */ => {
             console.error(info.id + ' tcp error');
 
             if (config.log.network) {
                 console.error(err);
             }
-        }).once('httpclient.request', (address, port) => {
+        }).once('httpclient.request', (
+            address /*: string */,
+            port /*: number */
+        ) /*: void */ => {
             console.log(
                 info.id + ' http request ' + address + ' ' + port
             );
 
             sendJson(['connect', address, port], null);
-        }).once('httpclient.connect', (address, port) => {
+        }).once('httpclient.connect', (
+            address /*: string */,
+            port /*: number */
+        ) /*: void */ => {
             console.log(
                 info.id + ' http connect ' + address + ' ' + port
             );
 
             sendJson(['connect', address, port], null);
-        }).on('httpclient.data', (chunk) => {
+        }).on('httpclient.data', (
+            chunk /*: Buffer */
+        ) /*: void */ => {
             if (config.log.transfer) {
                 console.error(info.id + ' http data');
             }
 
             sendJson(['data'], chunk);
-        }).once('httpclient.end', () => {
+        }).once('httpclient.end', () /*: void */ => {
             if (config.log.transfer) {
                 console.error(info.id + ' http end');
             }
 
             sendJson(['end'], null);
-        }).once('httpclient.close', () => {
+        }).once('httpclient.close', () /*: void */ => {
             if (config.log.transfer) {
                 console.error(info.id + ' http close');
             }
 
             next.next(null);
-        }).on('http.step', (step) => {
+        }).on('http.step', (
+            step /*: string */
+        ) /*: void */ => {
             if (config.log.step) {
                 console.error(info.id + ' http step ' + step);
             }
-        }).on('http.error', (step) => {
+        }).on('http.error', (
+            step /*: string */
+        ) /*: void */ => {
             console.error(info.id + ' http error ' + step);
         });
-    }).on('error', (err) => {
+    }).on('error', (
+        err /*: error */
+    ) /*: void */ => {
         console.error('tcp server error');
 
         if (config.log.network) {
@@ -80,7 +101,9 @@ module.exports = (
         }
     }).listen(listenPort);
 
-    return function *(info) {
+    return function *(
+        info /*: Info */
+    ) /*: Generator<void, void, Buffer | null> */ {
         if (!info.socket) {
             // non-null assertion
 
@@ -91,7 +114,11 @@ module.exports = (
 
         // TODO: 2-stage
 
-        for (let data = yield; data !== null; data = yield) {
+        for (
+            let data /*: Buffer | null */ = yield;
+            data !== null;
+            data = yield
+        ) {
             const json = serialize.getJson(data);
             const chunk = serialize.getChunk(data);
 

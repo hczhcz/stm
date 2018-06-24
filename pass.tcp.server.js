@@ -11,7 +11,9 @@ module.exports = (
 ) /*: Pass */ => {
     net.createServer({
         allowHalfOpen: true,
-    }).on('connection', (socket) => {
+    }).on('connection', (
+        socket /*: net$Socket */
+    ) /*: void */ => {
         const info = {
             id: crypto.randomBytes(2).toString('hex'),
             socket: socket,
@@ -21,18 +23,24 @@ module.exports = (
 
         next.next();
 
-        socket.on('data', (chunk) => {
+        socket.on('data', (
+            chunk /*: Buffer */
+        ) /*: void */ => {
             next.next(chunk);
-        }).once('close', () => {
+        }).once('close', () /*: void */ => {
             next.next(null);
-        }).on('error', (err) => {
+        }).on('error', (
+            err /*: error */
+        ) /*: void */ => {
             console.error(info.id + ' tcp error');
 
             if (config.log.network) {
                 console.error(err);
             }
         });
-    }).on('error', (err) => {
+    }).on('error', (
+        err /*: error */
+    ) /*: void */ => {
         console.error('tcp server error');
 
         if (config.log.network) {
@@ -40,7 +48,9 @@ module.exports = (
         }
     }).listen(port);
 
-    return function *(info) {
+    return function *(
+        info /*: Info */
+    ) /*: Generator<void, void, Buffer | null> */ {
         if (!info.socket) {
             // non-null assertion
 
@@ -49,7 +59,11 @@ module.exports = (
 
         const socket = info.socket;
 
-        for (let data = yield; data !== null; data = yield) {
+        for (
+            let data /*: Buffer | null */ = yield;
+            data !== null;
+            data = yield
+        ) {
             socket.write(data);
         }
 

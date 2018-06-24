@@ -7,28 +7,35 @@ const httpParse = require('./http.parse');
 const accept = (
     socket /*: net$Socket */
 ) /*: void */ => {
-    let buffer = Buffer.alloc(0);
-    let parseDone = false;
+    let buffer /*: Buffer */ = Buffer.alloc(0);
+    let parseDone /*: boolean */ = false;
 
-    const establish = () => {
+    const establish = () /*: void */ => {
         socket.emit('http.step', 'establish');
 
-        socket.on('data', (chunk) => {
+        socket.on('data', (
+            chunk /*: Buffer */
+        ) /*: void */ => {
             socket.emit('httpclient.data', chunk);
-        }).once('end', () => {
+        }).once('end', () /*: void */ => {
             socket.emit('httpclient.end');
-        }).once('close', () => {
+        }).once('close', () /*: void */ => {
             socket.emit('httpclient.close');
-        }).on('httpserver.data', (chunk) => {
+        }).on('httpserver.data', (
+            chunk /*: Buffer */
+        ) /*: void */ => {
             socket.write(chunk);
-        }).once('httpserver.end', () => {
+        }).once('httpserver.end', () /*: void */ => {
             socket.end();
-        }).once('httpserver.close', () => {
+        }).once('httpserver.close', () /*: void */ => {
             socket.destroy();
         });
     };
 
-    const connect = (target, httpVersion) => {
+    const connect = (
+        target /*: string */,
+        httpVersion /*: string */
+    ) /*: void */ => {
         const address = url.parse('http://' + target);
 
         socket.emit(
@@ -45,7 +52,12 @@ const accept = (
         establish();
     };
 
-    const request = (method, target, httpVersion, headers) => {
+    const request = (
+        method /*: string */,
+        target /*: string */,
+        httpVersion /*: string */,
+        headers /*: Array<Array<string>> */
+    ) /*: void */ => {
         const address = url.parse(target);
 
         socket.emit(
@@ -65,7 +77,7 @@ const accept = (
             )
         );
 
-        for (let i = 0; i < headers.length; i += 1) {
+        for (let i /*: number */ = 0; i < headers.length; i += 1) {
             socket.emit(
                 'httpclient.data',
                 Buffer.from(
@@ -73,7 +85,7 @@ const accept = (
                 )
             );
 
-            for (let j = 2; j < headers[i].length; j += 1) {
+            for (let j /*: number */ = 2; j < headers[i].length; j += 1) {
                 socket.emit(
                     'httpclient.data',
                     Buffer.from(
@@ -93,9 +105,15 @@ const accept = (
         establish();
     };
 
-    const handleHeader = (method, target, httpVersion) => {
+    const handleHeader = (
+        method /*: string */,
+        target /*: string */,
+        httpVersion /*: string */
+    ) /*: Generator<void, void, string> */ => {
         return httpParse.parseHeader(
-            (headers) => {
+            (
+                headers /*: Array<Array<string>> */
+            ) /*: void */ => {
                 // done
 
                 socket.emit('http.step', 'header');
@@ -109,7 +127,7 @@ const accept = (
                     request(method, target, httpVersion, headers);
                 }
             },
-            () => {
+            () /*: void */ => {
                 // parse error
 
                 socket.emit('http.error', 'parse');
@@ -119,15 +137,15 @@ const accept = (
         );
     };
 
-    const handleStartLine = () => {
+    const handleStartLine = () /*: Generator<void, void, string> */ => {
         return httpParse.parseStartLine(
             handleHeader,
-            () => {
+            () /*: void */ => {
                 // done
 
                 socket.emit('http.step', 'startline');
             },
-            () => {
+            () /*: void */ => {
                 // parse error
 
                 socket.emit('http.error', 'parse');
@@ -141,7 +159,9 @@ const accept = (
 
     handler.next();
 
-    socket.on('data', (chunk) => {
+    socket.on('data', (
+        chunk /*: Buffer */
+    ) /*: void */ => {
         if (!parseDone) {
             buffer = Buffer.concat([buffer, chunk]);
 

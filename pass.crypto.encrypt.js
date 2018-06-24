@@ -9,7 +9,9 @@ module.exports = (
     ivLength /*: number */,
     password /*: string */
 ) /*: Pass */ => {
-    return function *(info) {
+    return function *(
+        info /*: Info */
+    ) /*: Generator<void, void, Buffer | null> */ {
         const next = nextPass(info);
 
         const nonceLength = Math.min(keyLength + ivLength, 32);
@@ -44,7 +46,11 @@ module.exports = (
         next.next(cipher.update(header));
         next.next(cipher.update(firstData));
 
-        for (let data = yield; data !== null; data = yield) {
+        for (
+            let data /*: Buffer | null */ = yield;
+            data !== null;
+            data = yield
+        ) {
             next.next(cipher.update(data));
         }
 

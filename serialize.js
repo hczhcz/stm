@@ -1,7 +1,7 @@
 'use strict';
 
 const create = (
-    json /*: any */,
+    json /*: Command */,
     chunk /*: Buffer | null */
 ) /*: Buffer */ => {
     const jsonData = Buffer.from(JSON.stringify(json));
@@ -21,7 +21,7 @@ const create = (
 
 const getJson = (
     data /*: Buffer */
-) /*: any */ => {
+) /*: Command */ => {
     const jsonSize = data.readUInt32BE(0);
 
     return JSON.parse(data.slice(8, 8 + jsonSize).toString());

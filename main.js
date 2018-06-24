@@ -5,15 +5,17 @@ const mainArgs = require('./main.args');
 const mainRun = require('./main.run');
 const mainHelp = require('./main.help');
 
-process.on('uncaughtException', (err) => {
+process.on('uncaughtException', (
+    err /*: error */
+) /*: void */ => {
     console.error('global error');
     console.error(err);
 });
 
 const args = mainArgs.init();
-let key = null;
+let key /*: string | null */ = null;
 
-for (let i = 2; i < process.argv.length; i += 1) {
+for (let i /*: number */ = 2; i < process.argv.length; i += 1) {
     if (process.argv[i][0] === '-') {
         if (process.argv[i] === '-h' || process.argv[i] === '--help') {
             mainHelp.print();

@@ -16,7 +16,9 @@ module.exports = (
 ) /*: Pass */ => {
     net.createServer({
         allowHalfOpen: true,
-    }).on('connection', (socket) => {
+    }).on('connection', (
+        socket /*: net$Socket */
+    ) /*: void */ => {
         const info /*: Info */ = {
             id: crypto.randomBytes(2).toString('hex'),
             socket: socket,
@@ -24,7 +26,10 @@ module.exports = (
 
         const next = nextPass(info);
 
-        const sendJson = (json, chunk) => {
+        const sendJson = (
+            json /*: Command */,
+            chunk /*: Buffer | null */
+        ) /*: void */ => {
             next.next(serialize.create(json, chunk));
         };
 
@@ -32,13 +37,18 @@ module.exports = (
 
         socks5.accept(socket);
 
-        socket.on('error', (err) => {
+        socket.on('error', (
+            err /*: error */
+        ) /*: void */ => {
             console.error(info.id + ' tcp error');
 
             if (config.log.network) {
                 console.error(err);
             }
-        }).once('socks5client.connect', (address, port) => {
+        }).once('socks5client.connect', (
+            address /*: string */,
+            port /*: number */
+        ) /*: void */ => {
             console.log(
                 info.id + ' socks5 connect ' + address + ' ' + port
             );
@@ -53,20 +63,26 @@ module.exports = (
                     null
                 );
             }
-        }).once('socks5client.bind', (address, port) => {
+        }).once('socks5client.bind', (
+            address /*: string */,
+            port /*: number */
+        ) /*: void */ => {
             console.log(
                 info.id + ' socks5 bind ' + address + ' ' + port
             );
 
             sendJson(['bind'], null);
-        }).once('socks5client.udpassociate', (address, port) => {
+        }).once('socks5client.udpassociate', (
+            address /*: string */,
+            port /*: number */
+        ) /*: void */ => {
             console.log(
                 info.id + ' socks5 udpassociate ' + address + ' ' + port
             );
 
             const udpBind = dgram.createSocket({
                 type: 'udp6',
-            }).once('listening', () => {
+            }).once('listening', () /*: void */ => {
                 sendJson(['udpassociate'], null);
 
                 if (!fullResponse) {
@@ -79,29 +95,35 @@ module.exports = (
                         null
                     );
                 }
-            }).on('error', (err) => {
+            }).on('error', (
+                err /*: error */
+            ) /*: void */ => {
                 console.error(info.id + ' udp error');
 
                 if (config.log.network) {
                     console.error(err);
                 }
             }).on('socks5client.message', (
-                localAddress,
-                localPort,
-                remoteAddress,
-                remotePort,
-                msg
-            ) => {
+                localAddress /*: string */,
+                localPort /*: number */,
+                remoteAddress /*: string */,
+                remotePort /*: number */,
+                msg /*: Buffer */
+            ) /*: void */ => {
                 if (config.log.transfer) {
                     console.error(info.id + ' socks5 message');
                 }
 
                 sendJson(['message', remoteAddress, remotePort], msg);
-            }).on('socks5.step', (step) => {
+            }).on('socks5.step', (
+                step /*: string */
+            ) /*: void */ => {
                 if (config.log.step) {
                     console.error(info.id + ' socks5 udp step ' + step);
                 }
-            }).on('socks5.error', (step) => {
+            }).on('socks5.error', (
+                step /*: string */
+            ) /*: void */ => {
                 console.error(info.id + ' socks5 udp error ' + step);
             });
 
@@ -113,13 +135,15 @@ module.exports = (
             info.udpBind = udpBind;
             info.udpAddress = address;
             info.udpPort = port;
-        }).on('socks5client.data', (chunk) => {
+        }).on('socks5client.data', (
+            chunk /*: Buffer */
+        ) /*: void */ => {
             if (config.log.transfer) {
                 console.error(info.id + ' socks5 data');
             }
 
             sendJson(['data'], chunk);
-        }).once('socks5client.end', () => {
+        }).once('socks5client.end', () /*: void */ => {
             if (config.log.transfer) {
                 console.error(info.id + ' socks5 end');
             }
@@ -133,20 +157,26 @@ module.exports = (
             }
 
             sendJson(['end'], null);
-        }).once('socks5client.close', () => {
+        }).once('socks5client.close', () /*: void */ => {
             if (config.log.transfer) {
                 console.error(info.id + ' socks5 close');
             }
 
             next.next(null);
-        }).on('socks5.step', (step) => {
+        }).on('socks5.step', (
+            step /*: string */
+        ) /*: void */ => {
             if (config.log.step) {
                 console.error(info.id + ' socks5 tcp step ' + step);
             }
-        }).on('socks5.error', (step) => {
+        }).on('socks5.error', (
+            step /*: string */
+        ) /*: void */ => {
             console.error(info.id + ' socks5 tcp error ' + step);
         });
-    }).on('error', (err) => {
+    }).on('error', (
+        err /*: error */
+    ) /*: void */ => {
         console.error('tcp server error');
 
         if (config.log.network) {
@@ -154,7 +184,9 @@ module.exports = (
         }
     }).listen(listenPort);
 
-    return function *(info) {
+    return function *(
+        info /*: Info */
+    ) /*: Generator<void, void, Buffer | null> */ {
         if (!info.socket) {
             // non-null assertion
 
@@ -165,11 +197,15 @@ module.exports = (
 
         // TODO: 2-stage
 
-        for (let data = yield; data !== null; data = yield) {
+        for (
+            let data /*: Buffer | null */ = yield;
+            data !== null;
+            data = yield
+        ) {
             const json = serialize.getJson(data);
             const chunk = serialize.getChunk(data);
 
-            let bind = null;
+            let bind /*: net$Socket$address | null */ = null;
 
             switch (json[0]) {
                 case 'open':
@@ -190,7 +226,7 @@ module.exports = (
                     );
 
                     break;
-                case 'udpassociate':
+                case 'udpopen':
                     if (!info.udpBind) {
                         // non-null assertion
 

@@ -17,7 +17,7 @@ const serialize = require('./serialize');
 // reply:
 // open(address, port, code)
 // connection(address, port, code)
-// udpassociate(code)
+// udpopen(code)
 // message(address, port) + msg
 // data() + chunk
 // end()
@@ -26,10 +26,15 @@ module.exports = (
     nextPass /*: Pass */,
     fullResponse /*: boolean */
 ) /*: Pass */ => {
-    return function *(info) {
+    return function *(
+        info /*: Info */
+    ) /*: Generator<void, void, Buffer | null> */ {
         const next = nextPass(info);
 
-        const sendJson = (json, chunk) => {
+        const sendJson = (
+            json /*: Command */,
+            chunk /*: Buffer | null */
+        ) /*: void */ => {
             next.next(serialize.create(json, chunk));
         };
 
@@ -45,12 +50,15 @@ module.exports = (
 
         const firstJson = serialize.getJson(firstData);
 
-        let socket = null;
-        let tcpServer = null;
-        let udpBind = null;
+        let socket /*: net$Socket | null */ = null;
+        let tcpServer /*: net$Server | null*/ = null;
+        let udpBind /*: dgram$Socket | null */ = null;
 
-        const connectInit = (address, port) => {
-            let connected = false;
+        const connectInit = (
+            address /*: string */,
+            port /*: number */
+        ) /*: void */ => {
+            let connected /*: boolean */ = false;
 
             if (info.socket) {
                 info.socket.pause();
@@ -60,7 +68,7 @@ module.exports = (
                 host: address,
                 port: port,
                 allowHalfOpen: true,
-            }).once('connect', () => {
+            }).once('connect', () /*: void */ => {
                 if (!socket) {
                     // non-null assertion
 
@@ -81,15 +89,19 @@ module.exports = (
                 if (info.socket) {
                     info.socket.resume();
                 }
-            }).on('data', (dataChunk) => {
+            }).on('data', (
+                dataChunk /*: Buffer */
+            ) /*: void */ => {
                 sendJson([
                     'data',
                 ], dataChunk);
-            }).once('end', () => {
+            }).once('end', () /*: void */ => {
                 sendJson([
                     'end',
                 ], null);
-            }).once('error', (err) => {
+            }).once('error', (
+                err /*: error */
+            ) /*: void */ => {
                 if (!socket) {
                     // non-null assertion
 
@@ -104,7 +116,9 @@ module.exports = (
                         err.code,
                     ], null);
                 }
-            }).on('error', (err) => {
+            }).on('error', (
+                err /*: error */
+            ) /*: void */ => {
                 console.error(info.id + ' tcp error');
 
                 if (config.log.network) {
@@ -113,8 +127,8 @@ module.exports = (
             });
         };
 
-        const bindInit = () => {
-            let connected = false;
+        const bindInit = () /*: void */ => {
+            let connected /*: boolean */ = false;
 
             if (info.socket) {
                 info.socket.pause();
@@ -122,7 +136,7 @@ module.exports = (
 
             tcpServer = net.createServer({
                 allowHalfOpen: true,
-            }).once('listening', () => {
+            }).once('listening', () /*: void */ => {
                 if (!tcpServer) {
                     // non-null assertion
 
@@ -148,16 +162,20 @@ module.exports = (
                         null,
                     ], null);
                 }
-            }).once('connection', (remoteSocket) => {
-                socket = remoteSocket.on('data', (dataChunk) => {
+            }).once('connection', (
+                remoteSocket /*: net$Socket */
+            ) /*: void */ => {
+                socket = remoteSocket.on('data', (
+                    dataChunk /*: Buffer */
+                ) /*: void */ => {
                     sendJson([
                         'data',
                     ], dataChunk);
-                }).once('end', () => {
+                }).once('end', () /*: void */ => {
                     sendJson([
                         'end',
                     ], null);
-                }).once('close', () => {
+                }).once('close', () /*: void */ => {
                     if (!tcpServer) {
                         // non-null assertion
 
@@ -166,7 +184,9 @@ module.exports = (
 
                     tcpServer.close();
                     tcpServer = null;
-                }).on('error', (err) => {
+                }).on('error', (
+                    err /*: error */
+                ) /*: void */ => {
                     console.error(info.id + ' tcp error');
 
                     if (config.log.network) {
@@ -174,9 +194,10 @@ module.exports = (
                     }
                 });
 
+                // note: remoteAddress might be absent
                 sendJson([
                     'connection',
-                    remoteSocket.remoteAddress,
+                    remoteSocket.remoteAddress || '',
                     remoteSocket.remotePort,
                     null,
                 ], null);
@@ -184,7 +205,9 @@ module.exports = (
                 if (info.socket) {
                     info.socket.resume();
                 }
-            }).once('error', (err) => {
+            }).once('error', (
+                err /*: error */
+            ) /*: void */ => {
                 if (!tcpServer) {
                     // non-null assertion
 
@@ -210,7 +233,9 @@ module.exports = (
                         ], null);
                     }
                 }
-            }).on('error', (err) => {
+            }).on('error', (
+                err /*: error */
+            ) /*: void */ => {
                 console.error(info.id + ' tcp server error');
 
                 if (config.log.network) {
@@ -219,8 +244,8 @@ module.exports = (
             }).listen();
         };
 
-        const udpAssociateInit = () => {
-            let connected = false;
+        const udpAssociateInit = () /*: void */ => {
+            let connected /*: boolean */ = false;
 
             if (info.socket) {
                 info.socket.pause();
@@ -228,12 +253,12 @@ module.exports = (
 
             udpBind = dgram.createSocket({
                 type: 'udp6',
-            }).once('listening', () => {
+            }).once('listening', () /*: void */ => {
                 connected = true;
 
                 if (fullResponse) {
                     sendJson([
-                        'udpassociate',
+                        'udpopen',
                         null,
                     ], null);
                 }
@@ -241,20 +266,27 @@ module.exports = (
                 if (info.socket) {
                     info.socket.resume();
                 }
-            }).on('message', (msg, rinfo) => {
+            }).on('message', (
+                msg /*: Buffer */,
+                rinfo
+            ) /*: void */ => {
                 sendJson([
                     'message',
                     rinfo.address,
                     rinfo.port,
                 ], msg);
-            }).once('error', (err) => {
+            }).once('error', (
+                err /*: error */
+            ) /*: void */ => {
                 if (fullResponse && !connected && err.code) {
                     sendJson([
-                        'udpassociate',
+                        'udpopen',
                         err.code,
                     ], null);
                 }
-            }).on('error', (err) => {
+            }).on('error', (
+                err /*: error */
+            ) /*: void */ => {
                 console.error(info.id + ' udp error');
 
                 if (config.log.network) {
@@ -295,7 +327,11 @@ module.exports = (
                 throw Error();
         }
 
-        for (let data = yield; data !== null; data = yield) {
+        for (
+            let data /*: Buffer | null */ = yield;
+            data !== null;
+            data = yield
+        ) {
             const json = serialize.getJson(data);
             const chunk = serialize.getChunk(data);
 

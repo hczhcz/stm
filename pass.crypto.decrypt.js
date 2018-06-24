@@ -11,15 +11,17 @@ module.exports = (
 ) /*: Pass */ => {
     let nonceSet = {};
 
-    return function *(info) {
+    return function *(
+        info /*: Info */
+    ) /*: Generator<void, void, Buffer | null> */ {
         const next = nextPass(info);
 
-        let buffer = Buffer.alloc(0);
+        let buffer /*: Buffer */ = Buffer.alloc(0);
 
         const nonceLength = Math.min(keyLength + ivLength, 32);
 
-        let nonce = null;
-        let decipher = null;
+        let nonce /*: Buffer | null */ = null;
+        let decipher /*: crypto$Decipher | null */ = null;
 
         next.next();
 
@@ -84,7 +86,11 @@ module.exports = (
 
             next.next(buffer);
 
-            for (let data = yield; data !== null; data = yield) {
+            for (
+                let data /*: Buffer | null */ = yield;
+                data !== null;
+                data = yield
+            ) {
                 next.next(decipher.update(data));
             }
 

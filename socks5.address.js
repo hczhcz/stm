@@ -13,7 +13,7 @@ const stringify6 = (
 ) /*: string */ => {
     const sections = [];
 
-    for (let i = 0; i < 16; i += 2) {
+    for (let i /*: number */ = 0; i < 16; i += 2) {
         const num = (task.address[i] << 8) + task.address[i + 1];
 
         sections.push(num.toString(16));
@@ -46,7 +46,9 @@ const parse4 = (
 ) /*: Buffer */ => {
     const sections = address.split('.', 4);
 
-    return Buffer.from(sections.map((value) => {
+    return Buffer.from(sections.map((
+        value /*: string */
+    ) /*: number */ => {
         return parseInt(value, 10);
     }));
 };
@@ -57,9 +59,9 @@ const parse6 = (
     const sections = address.split(':', 8);
     const buffers = [];
 
-    let total = 0;
+    let total /*: number */ = 0;
 
-    for (let i = 0; i < sections.length; i += 1) {
+    for (let i /*: number */ = 0; i < sections.length; i += 1) {
         if (net.isIPv4(sections[i])) {
             buffers[i] = parse4(sections[i]);
             total += 4;
@@ -73,9 +75,9 @@ const parse6 = (
 
     const result = Buffer.alloc(16);
 
-    let position = 0;
+    let position /*: number */ = 0;
 
-    for (let i = 0; i < buffers.length; i += 1) {
+    for (let i /*: number */ = 0; i < buffers.length; i += 1) {
         if (buffers[i] === '') {
             position += 16 - total;
             total = 16;

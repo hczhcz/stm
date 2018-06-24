@@ -2,7 +2,7 @@
 
 const config = require('./config');
 
-const init = () /*: any */ => {
+const init = () /*: Args */ => {
     const args = {};
 
     for (const i in config.args) {
@@ -15,7 +15,7 @@ const init = () /*: any */ => {
 };
 
 const add = (
-    args /*: any */,
+    args /*: Args */,
     key /*: string */,
     value /*: string */
 ) /*: void */ => {

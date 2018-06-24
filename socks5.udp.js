@@ -7,12 +7,17 @@ const socks5write = require('./socks5.write');
 const init = (
     socket /*: dgram$Socket */
 ) /*: void */ => {
-    socket.on('message', (msg, rinfo) => {
-        let parseDone = false;
-        let i = 0;
+    socket.on('message', (
+        msg /*: Buffer */,
+        rinfo
+    ) /*: void */ => {
+        let parseDone /*: boolean */ = false;
+        let i /*: number */ = 0;
 
         const handler = socks5parse.parseUDP(
-            (task) => {
+            (
+                task /*: Task */
+            ) /*: void */ => {
                 // next
 
                 socket.emit('socks5.step', 'message');
@@ -28,17 +33,17 @@ const init = (
                     msg.slice(i + 1)
                 );
             },
-            () => {
+            () /*: void */ => {
                 // fragment error
 
                 socket.emit('socks5.error', 'fragment');
             },
-            () => {
+            () /*: void */ => {
                 // address error
 
                 socket.emit('socks5.error', 'address');
             },
-            () => {
+            () /*: void */ => {
                 // parse error
 
                 socket.emit('socks5.error', 'parse');
@@ -53,12 +58,12 @@ const init = (
             }
         }
     }).on('socks5server.message', (
-        localAddress,
-        localPort,
-        remoteAddress,
-        remotePort,
-        msg
-    ) => {
+        localAddress /*: string */,
+        localPort /*: number */,
+        remoteAddress /*: string */,
+        remotePort /*: number */,
+        msg /*: Buffer */
+    ) /*: void */ => {
         const task = socks5address.parse(remoteAddress, remotePort);
 
         socks5write.writeUDP(socket, localAddress, localPort, task, msg);

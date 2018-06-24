@@ -1,3 +1,22 @@
+declare type error = any;
+
+declare type Args = {
+    [string]: number | string,
+};
+
+// TODO
+// declare type Command = ['connect', string, number]
+//     | ['bind']
+//     | ['udpassociate']
+//     | ['open', string, number, string | null]
+//     | ['connection', string, number, string | null]
+//     | ['udpopen', string | null]
+//     | ['message', string, number]
+//     | ['data']
+//     | ['end'];
+
+declare type Command = Array<any>;
+
 declare type Task = {
     command?: string,
     addressType: 'ipv4' | 'domainname' | 'ipv6',
