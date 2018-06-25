@@ -75,9 +75,9 @@ mylocalmode: [
     'Some description',
     ['socks5', '-ls', false],
     ['mypass'],
-    ['crypto.encrypt', '-m', 32, 16, '-k'],
+    ['crypto.encrypt', '-m', 32, '-k'],
     ['tcp.client', '-s', '-p'],
-    ['crypto.decrypt', '-m', 32, 16, '-k'],
+    ['crypto.decrypt', '-m', 32, '-k'],
     ['mypass'],
     ['segmentation'],
 ],
@@ -85,12 +85,12 @@ mylocalmode: [
 myservermode: [
     'Some description',
     ['tcp.server', '-p'],
-    ['crypto.decrypt', '-m', 32, 16, '-k'],
+    ['crypto.decrypt', '-m', 32, '-k'],
     ['mypass'],
     ['segmentation'],
     ['proxy', false],
     ['mypass'],
-    ['crypto.encrypt', '-m', 32, 16, '-k'],
+    ['crypto.encrypt', '-m', 32, '-k'],
 ],
 ```
 
