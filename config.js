@@ -34,6 +34,17 @@ module.exports = {
             ['zlib.compress', 2],
             ['crypto.encrypt', '-m', 32, '-k'],
         ],
+
+        natdemo: [
+            'Start local NAT demo',
+            ['nat', [[8080, '::1', '-ls']], [[8080, '::1', '-ls']]],
+            ['zlib.compress', 2],
+            ['crypto.encrypt', '-m', 32, '-k'],
+            ['tcp.client', '-s', '-p'],
+            ['crypto.decrypt', '-m', 32, '-k', true],
+            ['zlib.decompress'],
+            ['segmentation'],
+        ],
     },
 
     args: {
