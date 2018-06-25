@@ -33,3 +33,9 @@ declare type Info = {
 };
 
 declare type Pass = (Info) => Generator<void, void, Buffer | null>;
+
+declare type NonceSet = {
+    [number]: {
+        [string]: true,
+    },
+};

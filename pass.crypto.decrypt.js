@@ -9,7 +9,30 @@ module.exports = (
     ivLength /*: number */,
     password /*: string */
 ) /*: Pass */ => {
-    let nonceSet = {};
+    let nonceSet /*: NonceSet */ = {};
+
+    const addNonce = (
+        nonce /*: Buffer */,
+        timestamp /*: number */
+    ) /*: boolean */ => {
+        const oldNonceSet = nonceSet;
+
+        const nonceString = '#' + nonce.toString('hex');
+        const now = Math.floor(Date.now() / 1000 / 60);
+
+        nonceSet = {};
+        nonceSet[now - 1] = oldNonceSet[now - 1] || {};
+        nonceSet[now] = oldNonceSet[now] || {};
+        nonceSet[now + 1] = oldNonceSet[now + 1] || {};
+
+        if (timestamp in nonceSet && !(nonceString in nonceSet[timestamp])) {
+            nonceSet[timestamp][nonceString] = true;
+
+            return true;
+        }
+
+        return false;
+    };
 
     return function *(
         info /*: Info */
@@ -65,25 +88,7 @@ module.exports = (
 
         buffer = buffer.slice(8);
 
-        const nonceString = '#' + nonce.toString('hex');
-        const now = Math.floor(Date.now() / 1000 / 60);
-
-        // TODO: move to a new function
-
-        const oldNonceSet = nonceSet;
-
-        nonceSet = {};
-        nonceSet[now - 1] = oldNonceSet[now - 1] || {};
-        nonceSet[now] = oldNonceSet[now] || {};
-        nonceSet[now + 1] = oldNonceSet[now + 1] || {};
-
-        if (
-            magic === 0xDEADBEEF
-            && timestamp in nonceSet
-            && !(nonceString in nonceSet[timestamp])
-        ) {
-            nonceSet[timestamp][nonceString] = true;
-
+        if (magic === 0xDEADBEEF && addNonce(nonce, timestamp)) {
             next.next(buffer);
 
             for (
