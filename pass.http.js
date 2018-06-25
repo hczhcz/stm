@@ -9,7 +9,8 @@ const http = require('./http');
 
 module.exports = (
     nextPass /*: Pass */,
-    listenPort /*: number */
+    listenPort /*: number */,
+    fullResponse /*: boolean */
 ) /*: Pass */ => {
     net.createServer({
         allowHalfOpen: true,
@@ -51,6 +52,10 @@ module.exports = (
             );
 
             sendJson(['connect', address, port], null);
+
+            if (!fullResponse) {
+                socket.emit('httpserver.open', null);
+            }
         }).once('httpclient.connect', (
             address /*: string */,
             port /*: number */
@@ -60,6 +65,10 @@ module.exports = (
             );
 
             sendJson(['connect', address, port], null);
+
+            if (!fullResponse) {
+                socket.emit('httpserver.open', null);
+            }
         }).on('httpclient.data', (
             chunk /*: Buffer */
         ) /*: void */ => {
@@ -123,6 +132,10 @@ module.exports = (
             const chunk = serialize.getChunk(data);
 
             switch (json[0]) {
+                case 'open':
+                    socket.emit('httpserver.open', json[3]);
+
+                    break;
                 case 'data':
                     socket.emit('httpserver.data', chunk);
 

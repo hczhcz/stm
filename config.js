@@ -15,7 +15,7 @@ module.exports = {
 
         http: [
             'Start local HTTP proxy server',
-            ['http', '-lh'],
+            ['http', '-lh', false],
             ['zlib.compress', 2],
             ['crypto.encrypt', '-m', 32, '-k'],
             ['tcp.client', '-s', '-p'],

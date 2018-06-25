@@ -29,7 +29,7 @@ const accept = (
             socket.end();
         }).once('httpserver.close', () /*: void */ => {
             socket.destroy();
-        });
+        }).resume();
     };
 
     const connect = (
@@ -38,18 +38,28 @@ const accept = (
     ) /*: void */ => {
         const address = url.parse('http://' + target);
 
-        socket.emit(
+        socket.pause().once('httpserver.open', (
+            code /*: string | null */
+        ) /*: void */ => {
+            if (code === null) {
+                socket.write(
+                    'HTTP/' + httpVersion
+                        + ' 200 Connection Established\r\n\r\n'
+                );
+
+                establish();
+            } else {
+                socket.write(
+                    'HTTP/' + httpVersion
+                        + ' 502 Bad Gateway\r\n\r\n'
+                );
+                socket.end();
+            }
+        }).emit(
             'httpclient.connect',
             address.hostname,
             parseInt(address.port, 10) || 80
         );
-
-        socket.write(
-            'HTTP/' + httpVersion
-                + ' 200 Connection Established\r\n\r\n'
-        );
-
-        establish();
     };
 
     const request = (
@@ -60,49 +70,59 @@ const accept = (
     ) /*: void */ => {
         const address = url.parse(target);
 
-        socket.emit(
+        socket.pause().once('httpserver.open', (
+            code /*: string | null */
+        ) /*: void */ => {
+            if (code === null) {
+                socket.emit(
+                    'httpclient.data',
+                    Buffer.from(
+                        method
+                            + ' ' + (address.pathname || '/')
+                            + (address.search || '')
+                            + (address.hash || '')
+                            + ' HTTP/' + httpVersion + '\r\n'
+                    )
+                );
+
+                for (let i /*: number */ = 0; i < headers.length; i += 1) {
+                    socket.emit(
+                        'httpclient.data',
+                        Buffer.from(
+                            headers[i][0] + ':' + headers[i][1] + '\r\n'
+                        )
+                    );
+
+                    for (let j /*: number */ = 2; j < headers[i].length; j += 1) {
+                        socket.emit(
+                            'httpclient.data',
+                            Buffer.from(
+                                headers[i][j] + '\r\n'
+                            )
+                        );
+                    }
+                }
+
+                socket.emit(
+                    'httpclient.data',
+                    Buffer.from(
+                        '\r\n'
+                    )
+                );
+
+                establish();
+            } else {
+                socket.write(
+                    'HTTP/' + httpVersion
+                        + ' 502 Bad Gateway\r\n\r\n'
+                );
+                socket.end();
+            }
+        }).emit(
             'httpclient.request',
             address.hostname,
             parseInt(address.port, 10) || 80
         );
-
-        socket.emit(
-            'httpclient.data',
-            Buffer.from(
-                method
-                    + ' ' + (address.pathname || '/')
-                    + (address.search || '')
-                    + (address.hash || '')
-                    + ' HTTP/' + httpVersion + '\r\n'
-            )
-        );
-
-        for (let i /*: number */ = 0; i < headers.length; i += 1) {
-            socket.emit(
-                'httpclient.data',
-                Buffer.from(
-                    headers[i][0] + ':' + headers[i][1] + '\r\n'
-                )
-            );
-
-            for (let j /*: number */ = 2; j < headers[i].length; j += 1) {
-                socket.emit(
-                    'httpclient.data',
-                    Buffer.from(
-                        headers[i][j] + '\r\n'
-                    )
-                );
-            }
-        }
-
-        socket.emit(
-            'httpclient.data',
-            Buffer.from(
-                '\r\n'
-            )
-        );
-
-        establish();
     };
 
     const handleHeader = (
