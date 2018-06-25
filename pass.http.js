@@ -17,12 +17,12 @@ module.exports = (
     }).on('connection', (
         socket /*: net$Socket */
     ) /*: void */ => {
-        const info = {
+        const info /*: Info */ = {
             id: crypto.randomBytes(2).toString('hex'),
             socket: socket,
         };
 
-        const next = nextPass(info);
+        const next /*: BufferGenerator */ = nextPass(info);
 
         const sendJson = (
             json /*: Command */,
@@ -118,14 +118,14 @@ module.exports = (
 
     return function *(
         info /*: Info */
-    ) /*: Generator<void, void, Buffer | null> */ {
+    ) /*: BufferGenerator */ {
         if (!info.socket) {
             // non-null assertion
 
             throw Error();
         }
 
-        const socket = info.socket;
+        const socket /*: net$Socket */ = info.socket;
 
         // TODO: 2-stage
 
@@ -134,8 +134,8 @@ module.exports = (
             data !== null;
             data = yield
         ) {
-            const json = serialize.getJson(data);
-            const chunk = serialize.getChunk(data);
+            const json /*: Command */ = serialize.getJson(data);
+            const chunk /*: Buffer */ = serialize.getChunk(data);
 
             switch (json[0]) {
                 case 'open':

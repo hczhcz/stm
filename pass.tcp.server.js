@@ -14,12 +14,12 @@ module.exports = (
     }).on('connection', (
         socket /*: net$Socket */
     ) /*: void */ => {
-        const info = {
+        const info /*: Info */ = {
             id: crypto.randomBytes(2).toString('hex'),
             socket: socket,
         };
 
-        const next = nextPass(info);
+        const next /*: BufferGenerator */ = nextPass(info);
 
         next.next();
 
@@ -54,14 +54,14 @@ module.exports = (
 
     return function *(
         info /*: Info */
-    ) /*: Generator<void, void, Buffer | null> */ {
+    ) /*: BufferGenerator */ {
         if (!info.socket) {
             // non-null assertion
 
             throw Error();
         }
 
-        const socket = info.socket;
+        const socket /*: net$Socket */ = info.socket;
 
         for (
             let data /*: Buffer | null */ = yield;

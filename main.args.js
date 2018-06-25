@@ -3,7 +3,7 @@
 const config = require('./config');
 
 const init = () /*: Args */ => {
-    const args = {};
+    const args /*: Args */ = {};
 
     for (const i in config.args) {
         if (config.args[i][2]) {

@@ -10,11 +10,11 @@ module.exports = (
 ) /*: Pass */ => {
     return function *(
         info /*: Info */
-    ) /*: Generator<void, void, Buffer | null> */ {
-        const next = nextPass(info);
+    ) /*: BufferGenerator */ {
+        const next /*: BufferGenerator */ = nextPass(info);
 
-        const nonce = crypto.createNonce(nonceLength);
-        const cipher = crypto.createCipher(
+        const nonce /*: Buffer */ = crypto.createNonce(nonceLength);
+        const cipher /*: crypto$Cipher */ = crypto.createCipher(
             algorithm,
             password,
             nonce
@@ -22,14 +22,14 @@ module.exports = (
 
         // verification info
 
-        const header = Buffer.alloc(8);
+        const header /*: Buffer */ = Buffer.alloc(8);
 
         header.writeUInt32BE(0xDEADBEEF, 0);
         header.writeUInt32BE(Math.floor(Date.now() / 1000 / 60), 4);
 
         next.next();
 
-        const firstData = yield;
+        const firstData /*: Buffer | null */ = yield;
 
         if (firstData === null) {
             next.next(null);

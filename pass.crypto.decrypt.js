@@ -9,16 +9,16 @@ module.exports = (
     password /*: string */,
     hang /*: boolean */
 ) /*: Pass */ => {
-    let nonceSet /*: NonceSet */ = {};
+    let nonceSet /*: CryptoNonceSet */ = {};
 
     const addNonce = (
         nonce /*: Buffer */,
         timestamp /*: number */
     ) /*: boolean */ => {
-        const oldNonceSet = nonceSet;
+        const oldNonceSet /*: CryptoNonceSet */ = nonceSet;
 
-        const nonceString = '#' + nonce.toString('hex');
-        const now = Math.floor(Date.now() / 1000 / 60);
+        const nonceString /*: string */ = '#' + nonce.toString('hex');
+        const now /*: number */ = Math.floor(Date.now() / 1000 / 60);
 
         nonceSet = {};
         nonceSet[now - 1] = oldNonceSet[now - 1] || {};
@@ -36,8 +36,8 @@ module.exports = (
 
     return function *(
         info /*: Info */
-    ) /*: Generator<void, void, Buffer | null> */ {
-        const next = nextPass(info);
+    ) /*: BufferGenerator */ {
+        const next /*: BufferGenerator */ = nextPass(info);
 
         let buffer /*: Buffer */ = Buffer.alloc(0);
 
@@ -47,7 +47,7 @@ module.exports = (
         next.next();
 
         while (buffer.length < nonceLength) {
-            const data = yield;
+            const data /*: Buffer | null */ = yield;
 
             if (data === null) {
                 next.next(null);
@@ -68,7 +68,7 @@ module.exports = (
         buffer = decipher.update(buffer.slice(nonceLength));
 
         while (buffer.length < 8) {
-            const data = yield;
+            const data /*: Buffer | null */ = yield;
 
             if (data === null) {
                 next.next(null);
@@ -79,8 +79,8 @@ module.exports = (
             buffer = Buffer.concat([buffer, decipher.update(data)]);
         }
 
-        const magic = buffer.readUInt32BE(0);
-        const timestamp = buffer.readUInt32BE(4);
+        const magic /*: number */ = buffer.readUInt32BE(0);
+        const timestamp /*: number */ = buffer.readUInt32BE(4);
 
         buffer = buffer.slice(8);
 

@@ -7,10 +7,10 @@ module.exports = (
 ) /*: Pass */ => {
     return function *(
         info /*: Info */
-    ) /*: Generator<void, void, Buffer | null> */ {
-        const next = nextPass(info);
+    ) /*: BufferGenerator */ {
+        const next /*: BufferGenerator */ = nextPass(info);
 
-        const inflate = zlib.createInflateRaw({
+        const inflate /*: zlib.InflateRaw */ = zlib.createInflateRaw({
             flush: zlib.constants.Z_SYNC_FLUSH,
             finishFlush: zlib.constants.Z_SYNC_FLUSH,
         }).on('data', (

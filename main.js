@@ -17,7 +17,7 @@ process.on('uncaughtException', (
     }
 });
 
-const args = mainArgs.init();
+const args /*: Args */ = mainArgs.init();
 let key /*: string | null */ = null;
 
 for (let i /*: number */ = 2; i < process.argv.length; i += 1) {

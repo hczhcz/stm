@@ -28,8 +28,8 @@ module.exports = (
 ) /*: Pass */ => {
     return function *(
         info /*: Info */
-    ) /*: Generator<void, void, Buffer | null> */ {
-        const next = nextPass(info);
+    ) /*: BufferGenerator */ {
+        const next /*: BufferGenerator */ = nextPass(info);
 
         const sendJson = (
             json /*: Command */,
@@ -40,7 +40,7 @@ module.exports = (
 
         next.next();
 
-        const firstData = yield;
+        const firstData /*: Buffer | null */ = yield;
 
         if (firstData === null) {
             next.next(null);
@@ -48,7 +48,7 @@ module.exports = (
             return;
         }
 
-        const firstJson = serialize.getJson(firstData);
+        const firstJson /*: Command */ = serialize.getJson(firstData);
 
         let socket /*: net$Socket | null */ = null;
         let tcpServer /*: net$Server | null*/ = null;
@@ -151,7 +151,7 @@ module.exports = (
 
                 connected = true;
 
-                const bind = tcpServer.address();
+                const bind /*: Address */ = tcpServer.address();
 
                 if (info.socket) {
                     sendJson([
@@ -227,7 +227,7 @@ module.exports = (
                 }
 
                 if (!connected && err.code) {
-                    const bind = tcpServer.address();
+                    const bind /*: Address */ = tcpServer.address();
 
                     if (info.socket) {
                         sendJson([
@@ -352,8 +352,8 @@ module.exports = (
             data !== null;
             data = yield
         ) {
-            const json = serialize.getJson(data);
-            const chunk = serialize.getChunk(data);
+            const json /*: Command */ = serialize.getJson(data);
+            const chunk /*: Buffer */ = serialize.getChunk(data);
 
             switch (json[0]) {
                 case 'message':

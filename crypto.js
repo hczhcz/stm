@@ -9,7 +9,7 @@ const hmac256 = (
     str /*: string */,
     nonce /*: Buffer */
 ) /*: Buffer */ => {
-    const hmac = crypto.createHmac('sha256', password);
+    const hmac /*: crypto$Hmac */ = crypto.createHmac('sha256', password);
 
     hmac.update(str);
     hmac.update(nonce);

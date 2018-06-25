@@ -1,8 +1,35 @@
 declare type error = any;
 
+declare type CharGenerator = Generator<void, void, number>;
+declare type StringGenerator = Generator<void, void, string>;
+declare type BufferGenerator = Generator<void, void, Buffer | null>;
+
+// main
+
+// declare type ModeInfo = {
+//     [0]: string,
+//     [number]: number | string | Array | Function,
+// };
+
+declare type ModeInfo = any;
+
 declare type Args = {
     [string]: number | string,
 };
+
+// pass
+
+declare type Info = {
+    id: string,
+    socket?: net$Socket,
+    udpBind?: dgram$Socket,
+    udpAddress?: string,
+    udpPort?: number,
+};
+
+declare type Pass = (Info) => BufferGenerator;
+
+// proxy
 
 // TODO
 // declare type Command = ['connect', string, number]
@@ -16,25 +43,21 @@ declare type Args = {
 //     | ['end'];
 
 declare type Command = Array<any>;
+declare type Address = net$Socket$address;
 
-declare type Task = {
-    command?: string,
+// socks5
+
+declare type Socks5Command = 'connect' | 'bind' | 'udpassociate';
+
+declare type Socks5Task = {
     addressType: 'ipv4' | 'domainname' | 'ipv6',
     address: Buffer,
     port: number,
 };
 
-declare type Info = {
-    id: string,
-    socket?: net$Socket,
-    udpBind?: dgram$Socket,
-    udpAddress?: string,
-    udpPort?: number,
-};
+// crypto
 
-declare type Pass = (Info) => Generator<void, void, Buffer | null>;
-
-declare type NonceSet = {
+declare type CryptoNonceSet = {
     [number]: {
         [string]: true,
     },

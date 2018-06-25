@@ -19,9 +19,10 @@ const accept = (
             code /*: string | null */
         ) /*: void */ => {
             if (code === null) {
-                const task = socks5address.parse(address, port);
-
-                socks5write.writeReply(socket, task);
+                socks5write.writeReply(
+                    socket,
+                    socks5address.parse(address, port)
+                );
 
                 callback();
             } else {
@@ -50,7 +51,7 @@ const accept = (
     };
 
     const connect = (
-        task /*: Task */
+        task /*: Socks5Task */
     ) /*: void */ => {
         socket.pause().once('socks5server.open', waitAddress(
             () /*: void */ => {
@@ -64,7 +65,7 @@ const accept = (
     };
 
     const bind = (
-        task /*: Task */
+        task /*: Socks5Task */
     ) /*: void */ => {
         socket.pause().once('socks5server.open', waitAddress(
             () /*: void */ => {
@@ -82,7 +83,7 @@ const accept = (
     };
 
     const udpAssociate = (
-        task /*: Task */
+        task /*: Socks5Task */
     ) /*: void */ => {
         socket.pause().once('socks5server.udpassociate', waitAddress(
             () /*: void */ => {
@@ -95,10 +96,11 @@ const accept = (
         );
     };
 
-    const handleRequest = () /*: Generator<void, void, number> */ => {
+    const handleRequest = () /*: CharGenerator */ => {
         return socks5parse.parseRequest(
             (
-                task /*: Task */
+                command /*: Socks5Command */,
+                task /*: Socks5Task */
             ) /*: void */ => {
                 // done
 
@@ -106,7 +108,7 @@ const accept = (
 
                 parseDone = true;
 
-                switch (task.command) {
+                switch (command) {
                     case 'connect':
                         connect(task);
 
@@ -151,7 +153,7 @@ const accept = (
         );
     };
 
-    const handleAuth = () /*: Generator<void, void, number> */ => {
+    const handleAuth = () /*: CharGenerator */ => {
         return socks5parse.parseAuth(
             handleRequest,
             () /*: void */ => {
@@ -181,7 +183,7 @@ const accept = (
         );
     };
 
-    const handler = handleAuth();
+    const handler /*: CharGenerator */ = handleAuth();
 
     handler.next();
 

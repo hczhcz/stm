@@ -8,23 +8,22 @@ const runMode = (
 ) /*: void */ => {
     console.log('mode ' + mode);
 
-    const configList = config.modes[mode];
-    const passList = [];
+    const configList /*: Array<ModeInfo> */ = config.modes[mode];
+    const passList /*: Array<Pass> */ = [];
 
     // TODO: remove extra '(' ')' in type notation
     const makeNextPass = (
         index /*: number */
-    ) /*: ((Info, Pass) => void) */ => {
+    ) /*: ((Info, Pass) => BufferGenerator) */ => {
         return (
-            info /*: Info */,
-            callback /*: Pass */
-        ) /*: void */ => {
-            return passList[index](info, callback);
+            info /*: Info */
+        ) /*: BufferGenerator */ => {
+            return passList[index](info);
         };
     };
 
     for (let i /*: number */ = 1; i < configList.length; i += 1) {
-        const argList = [makeNextPass(i)];
+        const argList /*: ModeInfo */ = [makeNextPass(i)];
 
         for (let j /*: number */ = 1; j < configList[i].length; j += 1) {
             if (

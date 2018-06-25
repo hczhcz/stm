@@ -8,10 +8,10 @@ module.exports = (
 ) /*: Pass */ => {
     return function *(
         info /*: Info */
-    ) /*: Generator<void, void, Buffer | null> */ {
-        const next = nextPass(info);
+    ) /*: BufferGenerator */ {
+        const next /*: BufferGenerator */ = nextPass(info);
 
-        const deflate = zlib.createDeflateRaw({
+        const deflate /*: zlib.DeflateRaw */ = zlib.createDeflateRaw({
             flush: zlib.constants.Z_SYNC_FLUSH,
             finishFlush: zlib.constants.Z_SYNC_FLUSH,
             level: level,

@@ -22,12 +22,12 @@ module.exports = (
         }).on('connection', (
             socket /*: net$Socket */
         ) /*: void */ => {
-            const info = {
+            const info /*: Info */ = {
                 id: crypto.randomBytes(2).toString('hex'),
                 socket: socket,
             };
 
-            const next = nextPass(info);
+            const next /*: BufferGenerator */ = nextPass(info);
 
             const sendJson = (
                 json /*: Command */,
@@ -90,11 +90,11 @@ module.exports = (
         port /*: number */
     ) /*: void */ => {
         process.nextTick(() /*: void */ => {
-            const info = {
+            const info /*: Info */ = {
                 id: crypto.randomBytes(2).toString('hex'),
             };
 
-            const next = nextPass(info);
+            const next /*: BufferGenerator */ = nextPass(info);
 
             const sendJson = (
                 json /*: Command */,
@@ -105,7 +105,7 @@ module.exports = (
 
             next.next();
 
-            const udpBind = dgram.createSocket({
+            const udpBind /*: dgram$Socket */ = dgram.createSocket({
                 type: 'udp6',
             }).once('listening', () /*: void */ => {
                 sendJson(['udpassociate'], null);
@@ -163,7 +163,7 @@ module.exports = (
 
     return function *(
         info /*: Info */
-    ) /*: Generator<void, void, Buffer | null> */ {
+    ) /*: BufferGenerator */ {
         // TODO: 2-stage
 
         for (
@@ -171,8 +171,8 @@ module.exports = (
             data !== null;
             data = yield
         ) {
-            const json = serialize.getJson(data);
-            const chunk = serialize.getChunk(data);
+            const json /*: Command */ = serialize.getJson(data);
+            const chunk /*: Buffer */ = serialize.getChunk(data);
 
             switch (json[0]) {
                 case 'message':

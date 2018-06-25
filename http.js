@@ -131,7 +131,7 @@ const accept = (
         method /*: string */,
         target /*: string */,
         httpVersion /*: string */
-    ) /*: Generator<void, void, string> */ => {
+    ) /*: StringGenerator */ => {
         return httpParse.parseHeader(
             (
                 headers /*: Array<Array<string>> */
@@ -159,7 +159,7 @@ const accept = (
         );
     };
 
-    const handleStartLine = () /*: Generator<void, void, string> */ => {
+    const handleStartLine = () /*: StringGenerator */ => {
         return httpParse.parseStartLine(
             handleHeader,
             () /*: void */ => {
@@ -177,7 +177,7 @@ const accept = (
         );
     };
 
-    const handler = handleStartLine();
+    const handler /*: StringGenerator */ = handleStartLine();
 
     handler.next();
 
@@ -188,7 +188,7 @@ const accept = (
             buffer = Buffer.concat([buffer, chunk]);
 
             while (true) {
-                const index = buffer.indexOf('\r\n');
+                const index /*: number */ = buffer.indexOf('\r\n');
 
                 if (index < 0) {
                     break;

@@ -3,18 +3,19 @@
 const net = require('net');
 
 const stringify4 = (
-    task /*: Task */
+    task /*: Socks5Task */
 ) /*: string */ => {
     return task.address.join('.');
 };
 
 const stringify6 = (
-    task /*: Task */
+    task /*: Socks5Task */
 ) /*: string */ => {
-    const sections = [];
+    const sections /*: Array<string> */ = [];
 
     for (let i /*: number */ = 0; i < 16; i += 2) {
-        const num = (task.address[i] << 8) + task.address[i + 1];
+        const num /*: number */ = (task.address[i] << 8)
+            + task.address[i + 1];
 
         sections.push(num.toString(16));
     }
@@ -26,7 +27,7 @@ const stringify6 = (
 };
 
 const stringify = (
-    task /*: Task */
+    task /*: Socks5Task */
 ) /*: string */ => {
     switch (task.addressType) {
         case 'ipv4':
@@ -44,7 +45,7 @@ const stringify = (
 const parse4 = (
     address /*: string */
 ) /*: Buffer */ => {
-    const sections = address.split('.', 4);
+    const sections /*: Array<string> */ = address.split('.', 4);
 
     return Buffer.from(sections.map((
         value /*: string */
@@ -56,8 +57,8 @@ const parse4 = (
 const parse6 = (
     address /*: string */
 ) /*: Buffer */ => {
-    const sections = address.split(':', 8);
-    const buffers = [];
+    const sections /*: Array<string> */ = address.split(':', 8);
+    const buffers /*: Array<Buffer> */ = [];
 
     let total /*: number */ = 0;
 
@@ -66,14 +67,14 @@ const parse6 = (
             buffers[i] = parse4(sections[i]);
             total += 4;
         } else if (sections[i] !== '') {
-            const value = parseInt(sections[i], 16);
+            const value /*: number */ = parseInt(sections[i], 16);
 
             buffers[i] = Buffer.from([value >>> 8, value & 0xff]);
             total += 2;
         }
     }
 
-    const result = Buffer.alloc(16);
+    const result /*: Buffer */ = Buffer.alloc(16);
 
     let position /*: number */ = 0;
 
@@ -92,7 +93,7 @@ const parse6 = (
 const parse = (
     address /*: string */,
     port /*: number */
-) /*: Task */ => {
+) /*: Socks5Task */ => {
     if (net.isIPv4(address)) {
         return {
             addressType: 'ipv4',

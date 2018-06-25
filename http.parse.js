@@ -1,13 +1,13 @@
 'use strict';
 
 const parseStartLine = function *(
-    next /*: (string, string, string) => Generator<void, void, string> */,
+    next /*: (string, string, string) => StringGenerator */,
     done /*: () => void */,
     parseError /*: () => void */
-) /*: Generator<void, void, string> */ {
-    const line = yield;
+) /*: StringGenerator */ {
+    const line /*: string */ = yield;
 
-    const startLine = line.match(
+    const startLine /*: Array<string> | null */ = line.match(
         /^([^ \t\r\n]+) ([^ \t\r\n]+) HTTP\/([\d.]+)$/
     );
 
@@ -23,11 +23,11 @@ const parseStartLine = function *(
 const parseHeader = function *(
     done /*: (Array<Array<string>>) => void */,
     parseError /*: () => void */
-) /*: Generator<void, void, string> */ {
-    const headers = [];
+) /*: StringGenerator */ {
+    const headers /*: Array<Array<string>> */ = [];
 
     while (true) {
-        const line = yield;
+        const line /*: string */ = yield;
 
         if (line === '') {
             done(headers);
@@ -42,7 +42,9 @@ const parseHeader = function *(
                 break;
             }
         } else {
-            const header = line.match(/^([^ \t]+):(.*)$/);
+            const header /*: Array<string> | null */ = line.match(
+                /^([^ \t]+):(.*)$/
+            );
 
             if (header) {
                 headers.push([header[1], header[2]]);

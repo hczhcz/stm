@@ -24,7 +24,7 @@ module.exports = (
             socket: socket,
         };
 
-        const next = nextPass(info);
+        const next /*: BufferGenerator */ = nextPass(info);
 
         const sendJson = (
             json /*: Command */,
@@ -88,13 +88,13 @@ module.exports = (
                 info.id + ' socks5 udpassociate ' + address + ' ' + port
             );
 
-            const udpBind = dgram.createSocket({
+            const udpBind /*: dgram$Socket */ = dgram.createSocket({
                 type: 'udp6',
             }).once('listening', () /*: void */ => {
                 sendJson(['udpassociate'], null);
 
                 if (!fullResponse) {
-                    const bind = udpBind.address();
+                    const bind /*: Address */ = udpBind.address();
 
                     socket.emit(
                         'socks5server.udpassociate',
@@ -103,7 +103,7 @@ module.exports = (
                         null
                     );
                 }
-            }).on('close', () /*: void */ => {
+            }).once('close', () /*: void */ => {
                 if (config.log.networkClose) {
                     console.error(info.id + ' socks5 udpBind close');
                 }
@@ -200,14 +200,14 @@ module.exports = (
 
     return function *(
         info /*: Info */
-    ) /*: Generator<void, void, Buffer | null> */ {
+    ) /*: BufferGenerator */ {
         if (!info.socket) {
             // non-null assertion
 
             throw Error();
         }
 
-        const socket = info.socket;
+        const socket /*: net$Socket */ = info.socket;
 
         // TODO: 2-stage
 
@@ -216,10 +216,10 @@ module.exports = (
             data !== null;
             data = yield
         ) {
-            const json = serialize.getJson(data);
-            const chunk = serialize.getChunk(data);
+            const json /*: Command */ = serialize.getJson(data);
+            const chunk /*: Buffer */ = serialize.getChunk(data);
 
-            let bind /*: net$Socket$address | null */ = null;
+            let bind /*: Address | null */ = null;
 
             switch (json[0]) {
                 case 'open':

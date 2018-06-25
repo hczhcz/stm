@@ -14,9 +14,9 @@ const init = (
         let parseDone /*: boolean */ = false;
         let i /*: number */ = 0;
 
-        const handler = socks5parse.parseUDP(
+        const handler /*: CharGenerator */ = socks5parse.parseUDP(
             (
-                task /*: Task */
+                task /*: Socks5Task */
             ) /*: void */ => {
                 // next
 
@@ -64,9 +64,13 @@ const init = (
         remotePort /*: number */,
         msg /*: Buffer */
     ) /*: void */ => {
-        const task = socks5address.parse(remoteAddress, remotePort);
-
-        socks5write.writeUDP(socket, localAddress, localPort, task, msg);
+        socks5write.writeUDP(
+            socket,
+            localAddress,
+            localPort,
+            socks5address.parse(remoteAddress, remotePort),
+            msg
+        );
     });
 };
 

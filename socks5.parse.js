@@ -1,11 +1,11 @@
 'use strict';
 
 const parseAuth = function *(
-    next /*: () => Generator<void, void, number> */,
+    next /*: () => CharGenerator */,
     done /*: () => void */,
     authError /*: () => void */,
     parseError /*: () => void */
-) /*: Generator<void, void, number> */ {
+) /*: CharGenerator */ {
     // version
 
     if ((yield) !== 0x05) {
@@ -16,7 +16,7 @@ const parseAuth = function *(
 
     // method list
 
-    const nMethods = yield;
+    const nMethods /*: number */ = yield;
     let auth /*: boolean */ = false;
 
     for (let i /*: number */ = 0; i < nMethods; i += 1) {
@@ -35,11 +35,11 @@ const parseAuth = function *(
 };
 
 const parseRequest = function *(
-    done /*: (Task) => void */,
+    done /*: (Socks5Command, Socks5Task) => void */,
     commandError /*: () => void */,
     addressError /*: () => void */,
     parseError /*: () => void */
-) /*: Generator<void, void, number> */ {
+) /*: CharGenerator */ {
     // version
 
     if ((yield) !== 0x05) {
@@ -48,21 +48,21 @@ const parseRequest = function *(
         return;
     }
 
-    const task = {};
-
     // command
+
+    let command /*: Socks5Command | null */ = null;
 
     switch (yield) {
         case 0x01:
-            task.command = 'connect';
+            command = 'connect';
 
             break;
         case 0x02:
-            task.command = 'bind';
+            command = 'bind';
 
             break;
         case 0x03:
-            task.command = 'udpassociate';
+            command = 'udpassociate';
 
             break;
         default:
@@ -81,20 +81,23 @@ const parseRequest = function *(
 
     // address type
 
+    let addressType /*: string | null */ = null;
+    let address /*: Buffer | null */ = null;
+
     switch (yield) {
         case 0x01:
-            task.addressType = 'ipv4';
-            task.address = Buffer.alloc(4);
+            addressType = 'ipv4';
+            address = Buffer.alloc(4);
 
             break;
         case 0x03:
-            task.addressType = 'domainname';
-            task.address = Buffer.alloc(yield);
+            addressType = 'domainname';
+            address = Buffer.alloc(yield);
 
             break;
         case 0x04:
-            task.addressType = 'ipv6';
-            task.address = Buffer.alloc(16);
+            addressType = 'ipv6';
+            address = Buffer.alloc(16);
 
             break;
         default:
@@ -105,23 +108,27 @@ const parseRequest = function *(
 
     // address
 
-    for (let i /*: number */ = 0; i < task.address.length; i += 1) {
-        task.address[i] = yield;
+    for (let i /*: number */ = 0; i < address.length; i += 1) {
+        address[i] = yield;
     }
 
     // port
 
-    task.port = ((yield) << 8) + (yield);
+    const port /*: number */ = ((yield) << 8) + (yield);
 
-    done(task);
+    done(command, {
+        addressType: addressType,
+        address: address,
+        port: port,
+    });
 };
 
 const parseUDP = function *(
-    done /*: (Task) => void */,
+    done /*: (Socks5Task) => void */,
     fragmentError /*: () => void */,
     addressError /*: () => void */,
     parseError /*: () => void */
-) /*: Generator<void, void, number> */ {
+) /*: CharGenerator */ {
     // reserved
 
     if ((yield) !== 0x00 || (yield) !== 0x00) {
@@ -129,8 +136,6 @@ const parseUDP = function *(
 
         return;
     }
-
-    const task = {};
 
     // fragment
 
@@ -143,20 +148,23 @@ const parseUDP = function *(
 
     // address type
 
+    let addressType /*: string | null */ = null;
+    let address /*: Buffer | null */ = null;
+
     switch (yield) {
         case 0x01:
-            task.addressType = 'ipv4';
-            task.address = Buffer.alloc(4);
+            addressType = 'ipv4';
+            address = Buffer.alloc(4);
 
             break;
         case 0x03:
-            task.addressType = 'domainname';
-            task.address = Buffer.alloc(yield);
+            addressType = 'domainname';
+            address = Buffer.alloc(yield);
 
             break;
         case 0x04:
-            task.addressType = 'ipv6';
-            task.address = Buffer.alloc(16);
+            addressType = 'ipv6';
+            address = Buffer.alloc(16);
 
             break;
         default:
@@ -167,15 +175,19 @@ const parseUDP = function *(
 
     // address
 
-    for (let i /*: number */ = 0; i < task.address.length; i += 1) {
-        task.address[i] = yield;
+    for (let i /*: number */ = 0; i < address.length; i += 1) {
+        address[i] = yield;
     }
 
     // port
 
-    task.port = ((yield) << 8) + (yield);
+    const port /*: number */ = ((yield) << 8) + (yield);
 
-    done(task);
+    done({
+        addressType: addressType,
+        address: address,
+        port: port,
+    });
 };
 
 module.exports = {

@@ -1,7 +1,7 @@
 'use strict';
 
 const getAddressHeader = (
-    task /*: Task */
+    task /*: Socks5Task */
 ) /*: Buffer */ => {
     switch (task.addressType) {
         case 'ipv4':
@@ -38,7 +38,7 @@ const writeAuth = (
 
 const writeReply = (
     socket /*: net$Socket */,
-    task /*: Task */
+    task /*: Socks5Task */
 ) /*: void */ => {
     // version: 5
     // reply: succeeded
@@ -112,7 +112,7 @@ const writeUDP = (
     socket /*: dgram$Socket */,
     address /*: string */,
     port /*: number */,
-    task /*: Task */,
+    task /*: Socks5Task */,
     msg /*: Buffer */
 ) /*: void */ => {
     // reserved
