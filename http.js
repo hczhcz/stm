@@ -1,7 +1,5 @@
 'use strict';
 
-const url = require('url');
-
 const httpParse = require('./http.parse');
 
 const accept = (
@@ -32,7 +30,7 @@ const accept = (
         target /*: string */,
         httpVersion /*: string */
     ) /*: void */ => {
-        const address = url.parse('http://' + target);
+        const address /*: URL */ = new URL('http://' + target);
 
         socket.pause().once('httpserver.open', (
             code /*: string | null */
@@ -64,7 +62,7 @@ const accept = (
         httpVersion /*: string */,
         headers /*: Array<Array<string>> */
     ) /*: void */ => {
-        const address = url.parse(target);
+        const address /*: URL */ = new URL(target);
 
         socket.pause().once('httpserver.open', (
             code /*: string | null */
@@ -74,9 +72,9 @@ const accept = (
                     'httpclient.data',
                     Buffer.from(
                         method
-                            + ' ' + (address.pathname || '/')
-                            + (address.search || '')
-                            + (address.hash || '')
+                            + ' ' + address.pathname
+                            + address.search
+                            + address.hash
                             + ' HTTP/' + httpVersion + '\r\n'
                     )
                 );
