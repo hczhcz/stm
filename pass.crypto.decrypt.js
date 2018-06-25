@@ -5,8 +5,7 @@ const crypto = require('./crypto');
 module.exports = (
     nextPass /*: Pass */,
     algorithm /*: string */,
-    keyLength /*: number */,
-    ivLength /*: number */,
+    nonceLength /*: number */,
     password /*: string */
 ) /*: Pass */ => {
     let nonceSet /*: NonceSet */ = {};
@@ -41,8 +40,6 @@ module.exports = (
 
         let buffer /*: Buffer */ = Buffer.alloc(0);
 
-        const nonceLength = Math.min(keyLength + ivLength, 32);
-
         let nonce /*: Buffer | null */ = null;
         let decipher /*: crypto$Decipher | null */ = null;
 
@@ -63,8 +60,6 @@ module.exports = (
         nonce = buffer.slice(0, nonceLength);
         decipher = crypto.createDecipher(
             algorithm,
-            keyLength,
-            ivLength,
             password,
             nonce
         );

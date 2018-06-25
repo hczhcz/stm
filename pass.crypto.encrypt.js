@@ -5,8 +5,7 @@ const crypto = require('./crypto');
 module.exports = (
     nextPass /*: Pass */,
     algorithm /*: string */,
-    keyLength /*: number */,
-    ivLength /*: number */,
+    nonceLength /*: number */,
     password /*: string */
 ) /*: Pass */ => {
     return function *(
@@ -14,13 +13,9 @@ module.exports = (
     ) /*: Generator<void, void, Buffer | null> */ {
         const next = nextPass(info);
 
-        const nonceLength = Math.min(keyLength + ivLength, 32);
-
         const nonce = crypto.createNonce(nonceLength);
         const cipher = crypto.createCipher(
             algorithm,
-            keyLength,
-            ivLength,
             password,
             nonce
         );
