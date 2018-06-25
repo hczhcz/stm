@@ -8,8 +8,13 @@ const mainHelp = require('./main.help');
 process.on('uncaughtException', (
     err /*: error */
 ) /*: void */ => {
-    console.error('global error');
-    console.error(err);
+    if (config.log.globalError) {
+        console.error('global error');
+    }
+
+    if (config.log.globalErrorDetail) {
+        console.error(err);
+    }
 });
 
 const args = mainArgs.init();

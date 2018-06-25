@@ -57,8 +57,13 @@ module.exports = {
     },
 
     log: {
-        step: false,
-        transfer: false,
-        network: false,
+        globalError: true,
+        globalErrorDetail: false,
+        networkClose: true,
+        networkError: true,
+        networkErrorDetail: false,
+        proxyTransfer: false,
+        proxyStep: false,
+        proxyError: true,
     },
 };

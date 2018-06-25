@@ -38,17 +38,19 @@ module.exports = (
         socks5.accept(socket);
 
         socket.once('close', () /*: void */ => {
-            if (config.log.transfer) {
-                console.error(info.id + ' tcp close');
+            if (config.log.networkClose) {
+                console.error(info.id + ' socks5 socket close');
             }
 
             next.next(null);
         }).on('error', (
             err /*: error */
         ) /*: void */ => {
-            console.error(info.id + ' tcp error');
+            if (config.log.networkError) {
+                console.error(info.id + ' socks5 socket error');
+            }
 
-            if (config.log.network) {
+            if (config.log.networkErrorDetail) {
                 console.error(err);
             }
         }).once('socks5client.connect', (
@@ -101,12 +103,18 @@ module.exports = (
                         null
                     );
                 }
+            }).on('close', () /*: void */ => {
+                if (config.log.networkClose) {
+                    console.error(info.id + ' socks5 udpBind close');
+                }
             }).on('error', (
                 err /*: error */
             ) /*: void */ => {
-                console.error(info.id + ' udp error');
+                if (config.log.networkError) {
+                    console.error(info.id + ' socks5 udpBind error');
+                }
 
-                if (config.log.network) {
+                if (config.log.networkErrorDetail) {
                     console.error(err);
                 }
             }).on('socks5client.message', (
@@ -116,7 +124,7 @@ module.exports = (
                 remotePort /*: number */,
                 msg /*: Buffer */
             ) /*: void */ => {
-                if (config.log.transfer) {
+                if (config.log.proxyTransfer) {
                     console.error(info.id + ' socks5 message');
                 }
 
@@ -124,13 +132,15 @@ module.exports = (
             }).on('socks5.step', (
                 step /*: string */
             ) /*: void */ => {
-                if (config.log.step) {
-                    console.error(info.id + ' socks5 udp step ' + step);
+                if (config.log.proxyStep) {
+                    console.error(info.id + ' socks5 step ' + step);
                 }
             }).on('socks5.error', (
                 step /*: string */
             ) /*: void */ => {
-                console.error(info.id + ' socks5 udp error ' + step);
+                if (config.log.proxyError) {
+                    console.error(info.id + ' socks5 error ' + step);
+                }
             });
 
             // note: not chained according to the official docs
@@ -144,13 +154,13 @@ module.exports = (
         }).on('socks5client.data', (
             chunk /*: Buffer */
         ) /*: void */ => {
-            if (config.log.transfer) {
+            if (config.log.proxyTransfer) {
                 console.error(info.id + ' socks5 data');
             }
 
             sendJson(['data'], chunk);
         }).once('socks5client.end', () /*: void */ => {
-            if (config.log.transfer) {
+            if (config.log.proxyTransfer) {
                 console.error(info.id + ' socks5 end');
             }
 
@@ -166,20 +176,24 @@ module.exports = (
         }).on('socks5.step', (
             step /*: string */
         ) /*: void */ => {
-            if (config.log.step) {
-                console.error(info.id + ' socks5 tcp step ' + step);
+            if (config.log.proxyStep) {
+                console.error(info.id + ' socks5 step ' + step);
             }
         }).on('socks5.error', (
             step /*: string */
         ) /*: void */ => {
-            console.error(info.id + ' socks5 tcp error ' + step);
+            if (config.log.proxyError) {
+                console.error(info.id + ' socks5 error ' + step);
+            }
         });
     }).on('error', (
         err /*: error */
     ) /*: void */ => {
-        console.error('tcp server error');
+        if (config.log.networkError) {
+            console.error('socks5 server error');
+        }
 
-        if (config.log.network) {
+        if (config.log.networkErrorDetail) {
             console.error(err);
         }
     }).listen(listenPort);

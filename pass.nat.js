@@ -39,7 +39,7 @@ module.exports = (
             next.next();
 
             console.log(
-                info.id + ' nat tcp connect ' + address + ' ' + port
+                info.id + ' nat tcp ' + address + ' ' + port
             );
 
             sendJson(['connect', address, port], null);
@@ -51,22 +51,30 @@ module.exports = (
             }).once('end', () /*: void */ => {
                 sendJson(['end'], null);
             }).once('close', () /*: void */ => {
+                if (config.log.networkClose) {
+                    console.error(info.id + ' nat socket close');
+                }
+
                 next.next(null);
             }).on('error', (
                 err /*: error */
             ) /*: void */ => {
-                console.error(info.id + ' tcp error');
+                if (config.log.networkError) {
+                    console.error(info.id + ' nat socket error');
+                }
 
-                if (config.log.network) {
+                if (config.log.networkErrorDetail) {
                     console.error(err);
                 }
             });
         }).on('error', (
             err /*: error */
         ) /*: void */ => {
-            console.error('tcp server error');
+            if (config.log.networkError) {
+                console.error('nat server error');
+            }
 
-            if (config.log.network) {
+            if (config.log.networkErrorDetail) {
                 console.error(err);
             }
         }).listen(listenPort);
@@ -110,7 +118,7 @@ module.exports = (
                     || info.udpPort !== rinfo.port
                 ) {
                     console.log(
-                        info.id + ' nat udp connect ' + address + ' ' + port
+                        info.id + ' nat udp ' + address + ' ' + port
                     );
 
                     info.udpAddress = rinfo.address;
@@ -119,7 +127,9 @@ module.exports = (
 
                 sendJson(['message', address, port], msg);
             }).once('close', () /*: void */ => {
-                console.error(info.id + ' udp reconnect');
+                if (config.log.networkClose) {
+                    console.error(info.id + ' nat udpBind close');
+                }
 
                 next.next(null);
 
@@ -131,9 +141,11 @@ module.exports = (
             }).on('error', (
                 err /*: error */
             ) /*: void */ => {
-                console.error(info.id + ' udp error');
+                if (config.log.networkError) {
+                    console.error(info.id + ' nat udpBind error');
+                }
 
-                if (config.log.network) {
+                if (config.log.networkErrorDetail) {
                     console.error(err);
                 }
             });

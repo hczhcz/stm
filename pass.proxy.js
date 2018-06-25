@@ -99,6 +99,10 @@ module.exports = (
                 sendJson([
                     'end',
                 ], null);
+            }).once('close', () /*: void */ => {
+                if (config.log.networkClose) {
+                    console.error(info.id + ' proxy socket close');
+                }
             }).once('error', (
                 err /*: error */
             ) /*: void */ => {
@@ -119,9 +123,11 @@ module.exports = (
             }).on('error', (
                 err /*: error */
             ) /*: void */ => {
-                console.error(info.id + ' tcp error');
+                if (config.log.networkError) {
+                    console.error(info.id + ' proxy socket error');
+                }
 
-                if (config.log.network) {
+                if (config.log.networkErrorDetail) {
                     console.error(err);
                 }
             });
@@ -184,12 +190,18 @@ module.exports = (
 
                     tcpServer.close();
                     tcpServer = null;
+                }).once('close', () /*: void */ => {
+                    if (config.log.networkClose) {
+                        console.error(info.id + ' proxy socket close');
+                    }
                 }).on('error', (
                     err /*: error */
                 ) /*: void */ => {
-                    console.error(info.id + ' tcp error');
+                    if (config.log.networkError) {
+                        console.error(info.id + ' proxy socket error');
+                    }
 
-                    if (config.log.network) {
+                    if (config.log.networkErrorDetail) {
                         console.error(err);
                     }
                 });
@@ -236,9 +248,11 @@ module.exports = (
             }).on('error', (
                 err /*: error */
             ) /*: void */ => {
-                console.error(info.id + ' tcp server error');
+                if (config.log.networkError) {
+                    console.error(info.id + ' proxy server error');
+                }
 
-                if (config.log.network) {
+                if (config.log.networkErrorDetail) {
                     console.error(err);
                 }
             }).listen();
@@ -284,12 +298,18 @@ module.exports = (
                         err.code,
                     ], null);
                 }
+            }).once('close', () /*: void */ => {
+                if (config.log.networkClose) {
+                    console.error(info.id + ' proxy udpBind close');
+                }
             }).on('error', (
                 err /*: error */
             ) /*: void */ => {
-                console.error(info.id + ' udp error');
+                if (config.log.networkError) {
+                    console.error(info.id + ' proxy udpBind error');
+                }
 
-                if (config.log.network) {
+                if (config.log.networkErrorDetail) {
                     console.error(err);
                 }
             });

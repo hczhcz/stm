@@ -29,9 +29,11 @@ module.exports = (
         }).on('error', (
             err /*: error */
         ) /*: void */ => {
-            console.error(info.id + ' tcp error');
+            if (config.log.networkError) {
+                console.error(info.id + ' tcp.client socket error');
+            }
 
-            if (config.log.network) {
+            if (config.log.networkErrorDetail) {
                 console.error(err);
             }
         });

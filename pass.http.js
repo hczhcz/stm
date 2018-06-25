@@ -36,17 +36,19 @@ module.exports = (
         http.accept(socket);
 
         socket.once('close', () /*: void */ => {
-            if (config.log.transfer) {
-                console.error(info.id + ' tcp close');
+            if (config.log.networkClose) {
+                console.error(info.id + ' http socket close');
             }
 
             next.next(null);
         }).on('error', (
             err /*: error */
         ) /*: void */ => {
-            console.error(info.id + ' tcp error');
+            if (config.log.networkError) {
+                console.error(info.id + ' http socket error');
+            }
 
-            if (config.log.network) {
+            if (config.log.networkErrorDetail) {
                 console.error(err);
             }
         }).once('httpclient.request', (
@@ -78,13 +80,13 @@ module.exports = (
         }).on('httpclient.data', (
             chunk /*: Buffer */
         ) /*: void */ => {
-            if (config.log.transfer) {
+            if (config.log.proxyTransfer) {
                 console.error(info.id + ' http data');
             }
 
             sendJson(['data'], chunk);
         }).once('httpclient.end', () /*: void */ => {
-            if (config.log.transfer) {
+            if (config.log.proxyTransfer) {
                 console.error(info.id + ' http end');
             }
 
@@ -92,20 +94,24 @@ module.exports = (
         }).on('http.step', (
             step /*: string */
         ) /*: void */ => {
-            if (config.log.step) {
+            if (config.log.proxyStep) {
                 console.error(info.id + ' http step ' + step);
             }
         }).on('http.error', (
             step /*: string */
         ) /*: void */ => {
-            console.error(info.id + ' http error ' + step);
+            if (config.log.proxyError) {
+                console.error(info.id + ' http error ' + step);
+            }
         });
     }).on('error', (
         err /*: error */
     ) /*: void */ => {
-        console.error('tcp server error');
+        if (config.log.networkError) {
+            console.error('http server error');
+        }
 
-        if (config.log.network) {
+        if (config.log.networkErrorDetail) {
             console.error(err);
         }
     }).listen(listenPort);

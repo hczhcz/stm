@@ -32,18 +32,22 @@ module.exports = (
         }).on('error', (
             err /*: error */
         ) /*: void */ => {
-            console.error(info.id + ' tcp error');
+            if (config.log.networkError) {
+                console.error(info.id + ' tcp.server socket error');
+            }
 
-            if (config.log.network) {
+            if (config.log.networkErrorDetail) {
                 console.error(err);
             }
         });
     }).on('error', (
         err /*: error */
     ) /*: void */ => {
-        console.error('tcp server error');
+        if (config.log.networkError) {
+            console.error('tcp.server server error');
+        }
 
-        if (config.log.network) {
+        if (config.log.networkErrorDetail) {
             console.error(err);
         }
     }).listen(port);
