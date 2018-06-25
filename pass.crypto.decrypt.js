@@ -6,7 +6,8 @@ module.exports = (
     nextPass /*: Pass */,
     algorithm /*: string */,
     nonceLength /*: number */,
-    password /*: string */
+    password /*: string */,
+    hang /*: boolean */
 ) /*: Pass */ => {
     let nonceSet /*: NonceSet */ = {};
 
@@ -98,6 +99,14 @@ module.exports = (
                 // note: should be flushed earlier
 
                 throw Error();
+            }
+        } else if (hang) {
+            for (
+                let data /*: Buffer | null */ = yield;
+                data !== null;
+                data = yield
+            ) {
+                // nothing
             }
         }
 
