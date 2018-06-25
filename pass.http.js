@@ -35,7 +35,13 @@ module.exports = (
 
         http.accept(socket);
 
-        socket.on('error', (
+        socket.once('close', () /*: void */ => {
+            if (config.log.transfer) {
+                console.error(info.id + ' tcp close');
+            }
+
+            next.next(null);
+        }).on('error', (
             err /*: error */
         ) /*: void */ => {
             console.error(info.id + ' tcp error');
@@ -83,12 +89,6 @@ module.exports = (
             }
 
             sendJson(['end'], null);
-        }).once('httpclient.close', () /*: void */ => {
-            if (config.log.transfer) {
-                console.error(info.id + ' http close');
-            }
-
-            next.next(null);
         }).on('http.step', (
             step /*: string */
         ) /*: void */ => {
@@ -149,6 +149,6 @@ module.exports = (
             }
         }
 
-        socket.emit('httpserver.close');
+        socket.destroy();
     };
 };

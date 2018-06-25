@@ -19,16 +19,12 @@ const accept = (
             socket.emit('httpclient.data', chunk);
         }).once('end', () /*: void */ => {
             socket.emit('httpclient.end');
-        }).once('close', () /*: void */ => {
-            socket.emit('httpclient.close');
         }).on('httpserver.data', (
             chunk /*: Buffer */
         ) /*: void */ => {
             socket.write(chunk);
         }).once('httpserver.end', () /*: void */ => {
             socket.end();
-        }).once('httpserver.close', () /*: void */ => {
-            socket.destroy();
         }).resume();
     };
 
@@ -85,7 +81,11 @@ const accept = (
                     )
                 );
 
-                for (let i /*: number */ = 0; i < headers.length; i += 1) {
+                for (
+                    let i /*: number */ = 0;
+                    i < headers.length;
+                    i += 1
+                ) {
                     socket.emit(
                         'httpclient.data',
                         Buffer.from(
@@ -93,7 +93,11 @@ const accept = (
                         )
                     );
 
-                    for (let j /*: number */ = 2; j < headers[i].length; j += 1) {
+                    for (
+                        let j /*: number */ = 2;
+                        j < headers[i].length;
+                        j += 1
+                    ) {
                         socket.emit(
                             'httpclient.data',
                             Buffer.from(

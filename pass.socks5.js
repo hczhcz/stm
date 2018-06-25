@@ -37,7 +37,13 @@ module.exports = (
 
         socks5.accept(socket);
 
-        socket.on('error', (
+        socket.once('close', () /*: void */ => {
+            if (config.log.transfer) {
+                console.error(info.id + ' tcp close');
+            }
+
+            next.next(null);
+        }).on('error', (
             err /*: error */
         ) /*: void */ => {
             console.error(info.id + ' tcp error');
@@ -157,12 +163,6 @@ module.exports = (
             }
 
             sendJson(['end'], null);
-        }).once('socks5client.close', () /*: void */ => {
-            if (config.log.transfer) {
-                console.error(info.id + ' socks5 close');
-            }
-
-            next.next(null);
         }).on('socks5.step', (
             step /*: string */
         ) /*: void */ => {
@@ -273,7 +273,7 @@ module.exports = (
             }
         }
 
-        socket.emit('socks5server.close');
+        socket.destroy();
 
         if (info.udpBind) {
             info.udpBind.close();

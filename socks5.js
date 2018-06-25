@@ -40,16 +40,12 @@ const accept = (
             socket.emit('socks5client.data', chunk);
         }).once('end', () /*: void */ => {
             socket.emit('socks5client.end');
-        }).once('close', () /*: void */ => {
-            socket.emit('socks5client.close');
         }).on('socks5server.data', (
             chunk /*: Buffer */
         ) /*: void */ => {
             socket.write(chunk);
         }).once('socks5server.end', () /*: void */ => {
             socket.end();
-        }).once('socks5server.close', () /*: void */ => {
-            socket.destroy();
         }).resume();
     };
 
