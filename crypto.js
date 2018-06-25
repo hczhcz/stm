@@ -2,16 +2,17 @@
 
 const crypto = require('crypto');
 
-const hash256 = (
+const hmac256 = (
+    password /*: string */,
     str /*: string */,
     nonce /*: Buffer */
 ) /*: Buffer */ => {
-    const hash = crypto.createHash('sha256');
+    const hmac = crypto.createHmac('sha256', password);
 
-    hash.update(str);
-    hash.update(nonce);
+    hmac.update(str);
+    hmac.update(nonce);
 
-    return hash.digest();
+    return hmac.digest();
 };
 
 const createNonce = (
@@ -29,8 +30,8 @@ const createCipher = (
 ) /*: crypto$Cipher */ => {
     return crypto.createCipheriv(
         algorithm,
-        hash256(password, nonce).slice(0, keyLength),
-        hash256('iv', nonce).slice(0, ivLength)
+        hmac256(password, 'key', nonce).slice(0, keyLength),
+        hmac256(password, 'iv', nonce).slice(0, ivLength)
     );
 };
 
@@ -43,8 +44,8 @@ const createDecipher = (
 ) /*: crypto$Decipher */ => {
     return crypto.createDecipheriv(
         algorithm,
-        hash256(password, nonce).slice(0, keyLength),
-        hash256('iv', nonce).slice(0, ivLength)
+        hmac256(password, 'key', nonce).slice(0, keyLength),
+        hmac256(password, 'iv', nonce).slice(0, ivLength)
     );
 };
 
