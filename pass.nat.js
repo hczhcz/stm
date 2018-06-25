@@ -118,6 +118,16 @@ module.exports = (
                 }
 
                 sendJson(['message', address, port], msg);
+            }).once('close', () /*: void */ => {
+                console.error(info.id + ' udp reconnect');
+
+                next.next(null);
+
+                // reconnect
+                // TODO: timeout option?
+                setTimeout(() /*: void */ => {
+                    udpInit(listenPort, address, port);
+                }, 1000);
             }).on('error', (
                 err /*: error */
             ) /*: void */ => {
