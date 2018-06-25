@@ -192,13 +192,9 @@ module.exports = (
             }
         }
 
-        if (!info.socket) {
-            // non-null assertion
-
-            throw Error();
+        if (info.socket) {
+            info.socket.destroy();
         }
-
-        info.socket.emit('socks5server.close');
 
         if (info.udpBind) {
             info.udpBind.close();
