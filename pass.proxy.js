@@ -371,7 +371,6 @@ module.exports = (
                 case 'end':
                     if (socket) {
                         socket.end();
-                        socket = null;
                     }
 
                     if (tcpServer) {
