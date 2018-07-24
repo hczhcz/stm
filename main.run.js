@@ -8,7 +8,6 @@ const runMode = (
 ) /*: void */ => {
     console.log('mode ' + mode);
 
-    const configList /*: Array<ModeInfo> */ = config.modes[mode];
     const passList /*: Array<Pass> */ = [];
 
     // TODO: remove extra '(' ')' in type notation
@@ -22,34 +21,46 @@ const runMode = (
         };
     };
 
-    for (let i /*: number */ = 1; i < configList.length; i += 1) {
-        const argList /*: ModeInfo */ = [makeNextPass(i)];
+    const addPass = (
+        modeInfo /*: Array<ModeInfo> */
+    ) /*: boolean */ => {
+        const argList /*: ModeInfo */ = [
+            makeNextPass(passList.length + 1),
+        ];
 
-        for (let j /*: number */ = 1; j < configList[i].length; j += 1) {
+        for (let i /*: number */ = 1; i < modeInfo.length; i += 1) {
             if (
-                typeof configList[i][j] === 'string'
-                && configList[i][j][0] === '-'
+                typeof modeInfo[i] === 'string'
+                && modeInfo[i][0] === '-'
             ) {
-                if (args[configList[i][j]]) {
+                if (args[modeInfo[i]]) {
                     console.log(
-                        'arg ' + configList[i][j]
-                            + ' ' + args[configList[i][j]]
+                        'arg ' + modeInfo[i]
+                            + ' ' + args[modeInfo[i]]
                     );
 
-                    argList.push(args[configList[i][j]]);
+                    argList.push(args[modeInfo[i]]);
                 } else {
                     console.error(
-                        'missing arg ' + configList[i][j]
+                        'missing arg ' + modeInfo[i]
                     );
 
-                    return;
+                    return false;
                 }
             } else {
-                argList.push(configList[i][j]);
+                argList.push(modeInfo[i]);
             }
         }
 
-        passList.push(require('./pass.' + configList[i][0])(...argList));
+        passList.push(require('./pass.' + modeInfo[0])(...argList));
+
+        return true;
+    };
+
+    for (let i /*: number */ = 1; i < config.modes[mode].length; i += 1) {
+        if (!addPass(config.modes[mode][i])) {
+            return;
+        }
     }
 
     passList.push(passList[0]);
