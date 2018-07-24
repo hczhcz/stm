@@ -22,48 +22,62 @@ const runMode = (
     };
 
     const addPass = (
-        modeInfo /*: Array<ModeInfo> */
+        modeInfo /*: Array<PassParams> */
     ) /*: boolean */ => {
-        const argList /*: ModeInfo */ = [
-            makeNextPass(passList.length + 1),
-        ];
+        for (
+            let i /*: number */ = 0;
+            i < modeInfo.length;
+            i += 1
+        ) {
+            const passArgs /*: PassArgs */ = [
+                makeNextPass(passList.length + 1),
+            ];
 
-        for (let i /*: number */ = 1; i < modeInfo.length; i += 1) {
-            if (
-                typeof modeInfo[i] === 'string'
-                && modeInfo[i][0] === '-'
+            for (
+                let j /*: number */ = 1;
+                j < modeInfo[i].length;
+                j += 1
             ) {
-                if (args[modeInfo[i]]) {
-                    console.log(
-                        'arg ' + modeInfo[i]
-                            + ' ' + args[modeInfo[i]]
-                    );
+                if (
+                    typeof modeInfo[i][j] === 'string'
+                    && modeInfo[i][j][0] === '-'
+                ) {
+                    if (args[modeInfo[i][j]]) {
+                        console.log(
+                            'arg ' + modeInfo[i][j]
+                                + ' ' + args[modeInfo[i][j]]
+                        );
 
-                    argList.push(args[modeInfo[i]]);
+                        passArgs.push(args[modeInfo[i][j]]);
+                    } else {
+                        console.error(
+                            'missing arg ' + modeInfo[i][j]
+                        );
+
+                        return false;
+                    }
                 } else {
-                    console.error(
-                        'missing arg ' + modeInfo[i]
-                    );
-
-                    return false;
+                    passArgs.push(modeInfo[i][j]);
                 }
+            }
+
+            if (modeInfo[i][0] === '_include') {
+                //
+            } else if (modeInfo[i][0] === '_description') {
+                //
             } else {
-                argList.push(modeInfo[i]);
+                passList.push(require('./pass.' + modeInfo[0])(...passArgs));
             }
         }
-
-        passList.push(require('./pass.' + modeInfo[0])(...argList));
 
         return true;
     };
 
-    for (let i /*: number */ = 1; i < config.modes[mode].length; i += 1) {
-        if (!addPass(config.modes[mode][i])) {
-            return;
-        }
-    }
+    if (addPass(config.modes[mode])) {
+        // without this step, it will generates error
 
-    passList.push(passList[0]);
+        passList.push(passList[0]);
+    }
 };
 
 module.exports = {

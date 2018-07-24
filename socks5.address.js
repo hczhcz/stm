@@ -13,7 +13,11 @@ const stringify6 = (
 ) /*: string */ => {
     const sections /*: Array<string> */ = [];
 
-    for (let i /*: number */ = 0; i < 16; i += 2) {
+    for (
+        let i /*: number */ = 0;
+        i < 16;
+        i += 2
+    ) {
         const num /*: number */ = (task.address[i] << 8)
             + task.address[i + 1];
 
@@ -62,7 +66,11 @@ const parse6 = (
 
     let total /*: number */ = 0;
 
-    for (let i /*: number */ = 0; i < sections.length; i += 1) {
+    for (
+        let i /*: number */ = 0;
+        i < sections.length;
+        i += 1
+    ) {
         if (net.isIPv4(sections[i])) {
             buffers[i] = parse4(sections[i]);
             total += 4;
@@ -78,7 +86,11 @@ const parse6 = (
 
     let position /*: number */ = 0;
 
-    for (let i /*: number */ = 0; i < buffers.length; i += 1) {
+    for (
+        let i /*: number */ = 0;
+        i < buffers.length;
+        i += 1
+    ) {
         if (buffers[i] === '') {
             position += 16 - total;
             total = 16;

@@ -20,7 +20,11 @@ process.on('uncaughtException', (
 const args /*: Args */ = mainArgs.init();
 let key /*: string | null */ = null;
 
-for (let i /*: number */ = 2; i < process.argv.length; i += 1) {
+for (
+    let i /*: number */ = 2;
+    i < process.argv.length;
+    i += 1
+) {
     if (process.argv[i][0] === '-') {
         if (process.argv[i] === '-h' || process.argv[i] === '--help') {
             mainHelp.print();

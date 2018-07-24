@@ -191,7 +191,11 @@ const accept = (
         chunk /*: Buffer */
     ) /*: void */ => {
         if (!parseDone) {
-            for (let i /*: number */ = 0; i < chunk.length; i += 1) {
+            for (
+                let i /*: number */ = 0;
+                i < chunk.length;
+                i += 1
+            ) {
                 handler.next(chunk[i]);
 
                 if (parseDone) {

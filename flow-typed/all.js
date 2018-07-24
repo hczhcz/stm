@@ -6,12 +6,11 @@ declare type BufferGenerator = Generator<void, void, Buffer | null>;
 
 // main
 
-// declare type ModeInfo = {
-//     [0]: string,
-//     [number]: number | string | Array | Function,
-// };
+// declare type PassParams = Array<number | string | Array>;
+declare type PassParams = Array<any>
 
-declare type ModeInfo = any;
+// declare type PassArgs = Array<number | string | Array | Function>;
+declare type PassArgs = Array<any>
 
 declare type Args = {
     [string]: number | string,

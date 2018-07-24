@@ -80,7 +80,11 @@ module.exports = (
         }).listen(listenPort);
     };
 
-    for (let i /*: number */ = 0; i < tcpPolicy.length; i += 1) {
+    for (
+        let i /*: number */ = 0;
+        i < tcpPolicy.length;
+        i += 1
+    ) {
         tcpInit(tcpPolicy[i][0], tcpPolicy[i][1], tcpPolicy[i][2]);
     }
 
@@ -157,7 +161,11 @@ module.exports = (
         });
     };
 
-    for (let i /*: number */ = 0; i < udpPolicy.length; i += 1) {
+    for (
+        let i /*: number */ = 0;
+        i < udpPolicy.length;
+        i += 1
+    ) {
         udpInit(udpPolicy[i][0], udpPolicy[i][1], udpPolicy[i][2]);
     }
 

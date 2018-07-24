@@ -19,7 +19,11 @@ const parseAuth = function *(
     const nMethods /*: number */ = yield;
     let auth /*: boolean */ = false;
 
-    for (let i /*: number */ = 0; i < nMethods; i += 1) {
+    for (
+        let i /*: number */ = 0;
+        i < nMethods;
+        i += 1
+    ) {
         if ((yield) === 0x00) {
             auth = true;
         }
@@ -108,7 +112,11 @@ const parseRequest = function *(
 
     // address
 
-    for (let i /*: number */ = 0; i < address.length; i += 1) {
+    for (
+        let i /*: number */ = 0;
+        i < address.length;
+        i += 1
+    ) {
         address[i] = yield;
     }
 
@@ -175,7 +183,11 @@ const parseUDP = function *(
 
     // address
 
-    for (let i /*: number */ = 0; i < address.length; i += 1) {
+    for (
+        let i /*: number */ = 0;
+        i < address.length;
+        i += 1
+    ) {
         address[i] = yield;
     }
 
