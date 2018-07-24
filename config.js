@@ -59,7 +59,7 @@ module.exports = {
     log: {
         globalError: true,
         globalErrorDetail: false,
-        networkClose: true,
+        networkClose: false,
         networkError: true,
         networkErrorDetail: false,
         proxyTransfer: false,
