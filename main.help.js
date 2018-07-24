@@ -6,7 +6,17 @@ const print = () /*: void */ => {
     console.error('modes:');
 
     for (const i in config.modes) {
-        console.error('    ' + i + '\t' + config.modes[i][0]);
+        for (
+            let j /*: number */ = 0;
+            j < config.modes[i].length;
+            j += 1
+        ) {
+            if (config.modes[i][j][0] === '_description') {
+                console.error('    ' + i + '\t' + config.modes[i][j][1]);
+
+                break;
+            }
+        }
     }
 
     console.error('');

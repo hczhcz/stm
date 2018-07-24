@@ -21,7 +21,7 @@ const runMode = (
         };
     };
 
-    const addPass = (
+    const loadMode = (
         modeInfo /*: Array<PassParams> */
     ) /*: boolean */ => {
         for (
@@ -62,18 +62,18 @@ const runMode = (
             }
 
             if (modeInfo[i][0] === '_include') {
-                //
+                loadMode(config.modes[passArgs[1]]);
             } else if (modeInfo[i][0] === '_description') {
-                //
+                // ignore
             } else {
-                passList.push(require('./pass.' + modeInfo[0])(...passArgs));
+                passList.push(require('./pass.' + modeInfo[i][0])(...passArgs));
             }
         }
 
         return true;
     };
 
-    if (addPass(config.modes[mode])) {
+    if (loadMode(config.modes[mode])) {
         // without this step, it will generates error
 
         passList.push(passList[0]);

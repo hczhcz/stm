@@ -2,48 +2,47 @@
 
 module.exports = {
     modes: {
-        socks5: [
-            'Start local Socks5 proxy server',
-            ['socks5', '-ls', false],
+        _encode: [
             ['zlib.compress', 2],
             ['crypto.encrypt', '-m', 32, '-k'],
-            ['tcp.client', '-s', '-p'],
-            ['crypto.decrypt', '-m', 32, '-k', true],
-            ['zlib.decompress'],
-            ['segmentation'],
         ],
 
-        http: [
-            'Start local HTTP proxy server',
-            ['http', '-lh', false],
-            ['zlib.compress', 2],
-            ['crypto.encrypt', '-m', 32, '-k'],
-            ['tcp.client', '-s', '-p'],
+        _decode: [
             ['crypto.decrypt', '-m', 32, '-k', true],
             ['zlib.decompress'],
             ['segmentation'],
         ],
 
         server: [
-            'Start remote server',
+            ['_description', 'Start remote server'],
             ['tcp.server', '-p'],
-            ['crypto.decrypt', '-m', 32, '-k', true],
-            ['zlib.decompress'],
-            ['segmentation'],
+            ['_include', '_decode'],
             ['proxy', false],
-            ['zlib.compress', 2],
-            ['crypto.encrypt', '-m', 32, '-k'],
+            ['_include', '_encode'],
+        ],
+
+        socks5: [
+            ['_description', 'Start local Socks5 proxy server'],
+            ['socks5', '-ls', false],
+            ['_include', '_encode'],
+            ['tcp.client', '-s', '-p'],
+            ['_include', '_decode'],
+        ],
+
+        http: [
+            ['_description', 'Start local HTTP proxy server'],
+            ['http', '-lh', false],
+            ['_include', '_encode'],
+            ['tcp.client', '-s', '-p'],
+            ['_include', '_decode'],
         ],
 
         natdemo: [
-            'Start local NAT demo',
+            ['_description', 'Start local NAT demo'],
             ['nat', [[8080, '::1', '-ls']], [[8080, '::1', '-ls']]],
-            ['zlib.compress', 2],
-            ['crypto.encrypt', '-m', 32, '-k'],
+            ['_include', '_encode'],
             ['tcp.client', '-s', '-p'],
-            ['crypto.decrypt', '-m', 32, '-k', true],
-            ['zlib.decompress'],
-            ['segmentation'],
+            ['_include', '_decode'],
         ],
     },
 
