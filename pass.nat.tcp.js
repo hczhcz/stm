@@ -8,7 +8,8 @@ const serialize = require('./serialize');
 
 module.exports = (
     nextPass /*: Pass */,
-    tcpPolicy /*: Array<[number, string, number]> */
+    tcpPolicy /*: Array<[number, string, number]> */,
+    timeout /*: number */
 ) /*: Pass */ => {
     const tcpInit = (
         listenPort /*: number */,
@@ -66,7 +67,7 @@ module.exports = (
                 if (config.log.networkErrorDetail) {
                     console.error(err);
                 }
-            }).setTimeout(30000);
+            }).setTimeout(timeout);
         }).on('error', (
             err /*: error */
         ) /*: void */ => {

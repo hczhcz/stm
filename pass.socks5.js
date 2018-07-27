@@ -12,7 +12,8 @@ const socks5udp = require('./socks5.udp');
 module.exports = (
     nextPass /*: Pass */,
     listenPort /*: number */,
-    fullResponse /*: boolean */
+    fullResponse /*: boolean */,
+    timeout /*: number */
 ) /*: Pass */ => {
     net.createServer({
         allowHalfOpen: true,
@@ -187,9 +188,7 @@ module.exports = (
             if (config.log.proxyError) {
                 console.error(info.id + ' socks5 error ' + step);
             }
-        }).setTimeout(30000);
-
-        // TODO: config timeout? and also other socket.setTimeout functions
+        }).setTimeout(timeout);
     }).on('error', (
         err /*: error */
     ) /*: void */ => {

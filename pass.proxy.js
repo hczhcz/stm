@@ -24,7 +24,8 @@ const serialize = require('./serialize');
 
 module.exports = (
     nextPass /*: Pass */,
-    fullResponse /*: boolean */
+    fullResponse /*: boolean */,
+    timeout /*: number */
 ) /*: Pass */ => {
     return function *(
         info /*: Info */
@@ -138,7 +139,7 @@ module.exports = (
                 if (config.log.networkErrorDetail) {
                     console.error(err);
                 }
-            }).setTimeout(30000);
+            }).setTimeout(timeout);
         };
 
         const bindInit = () /*: void */ => {
@@ -220,7 +221,7 @@ module.exports = (
                     if (config.log.networkErrorDetail) {
                         console.error(err);
                     }
-                }).setTimeout(30000);
+                }).setTimeout(timeout);
 
                 // note: remoteAddress might be absent
                 sendJson([

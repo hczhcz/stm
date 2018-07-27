@@ -23,31 +23,31 @@ module.exports = {
             ['_description', 'Start remote server'],
             ['tcp.server', '-p'],
             ['_include', '_decode'],
-            ['proxy', false],
+            ['proxy', false, 60000],
             ['_include', '_encode'],
         ],
 
         socks5: [
             ['_description', 'Start local Socks5 proxy server'],
-            ['socks5', '-ls', false],
+            ['socks5', '-ls', false, 60000],
             ['_include', '_local'],
         ],
 
         http: [
             ['_description', 'Start local HTTP proxy server'],
-            ['http', '-lh', false],
+            ['http', '-lh', false, 60000],
             ['_include', '_local'],
         ],
 
         tcpnat: [
             ['_description', 'Start local TCP NAT'],
-            ['nat', [['-nl', '-ns', '-np']]],
+            ['nat.tcp', [['-nl', '-ns', '-np']], 60000],
             ['_include', '_local'],
         ],
 
         udpnat: [
             ['_description', 'Start local UDP NAT'],
-            ['nat', [['-nl', '-ns', '-np']]],
+            ['nat.udp', [['-nl', '-ns', '-np']], 3000],
             ['_include', '_local'],
         ],
     },

@@ -8,7 +8,8 @@ const serialize = require('./serialize');
 
 module.exports = (
     nextPass /*: Pass */,
-    udpPolicy /*: Array<[number, string, number]> */
+    udpPolicy /*: Array<[number, string, number]> */,
+    reconnect /*: number */
 ) /*: Pass */ => {
     const udpInit = (
         listenPort /*: number */,
@@ -60,10 +61,9 @@ module.exports = (
                 next.next(null);
 
                 // reconnect
-                // TODO: timeout option?
                 setTimeout(() /*: void */ => {
                     udpInit(listenPort, address, port);
-                }, 1000);
+                }, reconnect);
             }).on('error', (
                 err /*: error */
             ) /*: void */ => {

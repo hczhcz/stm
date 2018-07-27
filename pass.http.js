@@ -10,7 +10,8 @@ const http = require('./http');
 module.exports = (
     nextPass /*: Pass */,
     listenPort /*: number */,
-    fullResponse /*: boolean */
+    fullResponse /*: boolean */,
+    timeout /*: number */
 ) /*: Pass */ => {
     net.createServer({
         allowHalfOpen: true,
@@ -105,7 +106,7 @@ module.exports = (
             if (config.log.proxyError) {
                 console.error(info.id + ' http error ' + step);
             }
-        }).setTimeout(30000);
+        }).setTimeout(timeout);
     }).on('error', (
         err /*: error */
     ) /*: void */ => {
