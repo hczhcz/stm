@@ -54,6 +54,8 @@ module.exports = (
                 }
 
                 next.next(null);
+            }).once('timeout', () /*: void */ => {
+                socket.destroy();
             }).on('error', (
                 err /*: error */
             ) /*: void */ => {
@@ -64,7 +66,7 @@ module.exports = (
                 if (config.log.networkErrorDetail) {
                     console.error(err);
                 }
-            });
+            }).setTimeout(30000);
         }).on('error', (
             err /*: error */
         ) /*: void */ => {

@@ -43,6 +43,8 @@ module.exports = (
             }
 
             next.next(null);
+        }).once('timeout', () /*: void */ => {
+            socket.destroy();
         }).on('error', (
             err /*: error */
         ) /*: void */ => {
@@ -185,7 +187,9 @@ module.exports = (
             if (config.log.proxyError) {
                 console.error(info.id + ' socks5 error ' + step);
             }
-        });
+        }).setTimeout(30000);
+
+        // TODO: config timeout? and also other socket.setTimeout functions
     }).on('error', (
         err /*: error */
     ) /*: void */ => {

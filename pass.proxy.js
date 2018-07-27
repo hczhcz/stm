@@ -103,6 +103,8 @@ module.exports = (
                 if (config.log.networkClose) {
                     console.error(info.id + ' proxy socket close');
                 }
+            }).once('timeout', () /*: void */ => {
+                socket.destroy();
             }).once('error', (
                 err /*: error */
             ) /*: void */ => {
@@ -130,7 +132,7 @@ module.exports = (
                 if (config.log.networkErrorDetail) {
                     console.error(err);
                 }
-            });
+            }).setTimeout(30000);
         };
 
         const bindInit = () /*: void */ => {
@@ -194,6 +196,8 @@ module.exports = (
 
                     tcpServer.close();
                     tcpServer = null;
+                }).once('timeout', () /*: void */ => {
+                    socket.destroy();
                 }).on('error', (
                     err /*: error */
                 ) /*: void */ => {
@@ -204,7 +208,7 @@ module.exports = (
                     if (config.log.networkErrorDetail) {
                         console.error(err);
                     }
-                });
+                }).setTimeout(30000);
 
                 // note: remoteAddress might be absent
                 sendJson([
