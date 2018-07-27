@@ -104,6 +104,12 @@ module.exports = (
                     console.error(info.id + ' proxy socket close');
                 }
             }).once('timeout', () /*: void */ => {
+                if (!socket) {
+                    // non-null assertion
+
+                    throw Error();
+                }
+
                 socket.destroy();
             }).once('error', (
                 err /*: error */
@@ -197,6 +203,12 @@ module.exports = (
                     tcpServer.close();
                     tcpServer = null;
                 }).once('timeout', () /*: void */ => {
+                    if (!socket) {
+                        // non-null assertion
+
+                        throw Error();
+                    }
+
                     socket.destroy();
                 }).on('error', (
                     err /*: error */

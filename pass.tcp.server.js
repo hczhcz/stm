@@ -9,8 +9,7 @@ module.exports = (
     nextPass /*: Pass */,
     port /*: number */
 ) /*: Pass */ => {
-    net.createServer({
-    }).on('connection', (
+    net.createServer({}).on('connection', (
         socket /*: net$Socket */
     ) /*: void */ => {
         const info /*: Info */ = {
