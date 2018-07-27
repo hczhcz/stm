@@ -72,25 +72,17 @@ Here is a simple example:
 
 ```javascript
 mylocalmode: [
-    'Some description',
     ['socks5', '-ls', false],
     ['mypass'],
-    ['crypto.encrypt', '-m', 32, '-k'],
-    ['tcp.client', '-s', '-p'],
-    ['crypto.decrypt', '-m', 32, '-k'],
-    ['mypass'],
-    ['segmentation'],
+    ['_include', '_local'],
 ],
 
 myservermode: [
-    'Some description',
     ['tcp.server', '-p'],
-    ['crypto.decrypt', '-m', 32, '-k'],
+    ['_include', '_decode'],
     ['mypass'],
-    ['segmentation'],
     ['proxy', false],
-    ['mypass'],
-    ['crypto.encrypt', '-m', 32, '-k'],
+    ['_include', '_encode'],
 ],
 ```
 
