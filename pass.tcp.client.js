@@ -17,7 +17,6 @@ module.exports = (
         const socket /*: net$Socket */ = net.createConnection({
             host: address,
             port: port,
-            allowHalfOpen: true,
         }).once('connect', () /*: void */ => {
             next.next();
         }).on('data', (

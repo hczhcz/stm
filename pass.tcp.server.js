@@ -10,7 +10,6 @@ module.exports = (
     port /*: number */
 ) /*: Pass */ => {
     net.createServer({
-        allowHalfOpen: true,
     }).on('connection', (
         socket /*: net$Socket */
     ) /*: void */ => {
