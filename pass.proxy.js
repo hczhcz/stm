@@ -182,6 +182,10 @@ module.exports = (
                         'end',
                     ], null);
                 }).once('close', () /*: void */ => {
+                    if (config.log.networkClose) {
+                        console.error(info.id + ' proxy socket close');
+                    }
+
                     if (!tcpServer) {
                         // non-null assertion
 
@@ -190,10 +194,6 @@ module.exports = (
 
                     tcpServer.close();
                     tcpServer = null;
-                }).once('close', () /*: void */ => {
-                    if (config.log.networkClose) {
-                        console.error(info.id + ' proxy socket close');
-                    }
                 }).on('error', (
                     err /*: error */
                 ) /*: void */ => {
@@ -289,6 +289,10 @@ module.exports = (
                     rinfo.address,
                     rinfo.port,
                 ], msg);
+            }).once('close', () /*: void */ => {
+                if (config.log.networkClose) {
+                    console.error(info.id + ' proxy udpBind close');
+                }
             }).once('error', (
                 err /*: error */
             ) /*: void */ => {
@@ -297,10 +301,6 @@ module.exports = (
                         'udpopen',
                         err.code,
                     ], null);
-                }
-            }).once('close', () /*: void */ => {
-                if (config.log.networkClose) {
-                    console.error(info.id + ' proxy udpBind close');
                 }
             }).on('error', (
                 err /*: error */
