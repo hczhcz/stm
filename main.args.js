@@ -14,6 +14,18 @@ const init = () /*: Args */ => {
     return args;
 };
 
+const wait = (
+    key /*: string */
+) /*: string | null */ => {
+    for (const i in config.args) {
+        if (i === key) {
+            return i;
+        }
+    }
+
+    return null;
+};
+
 const add = (
     args /*: Args */,
     key /*: string */,
@@ -35,5 +47,6 @@ const add = (
 
 module.exports = {
     init: init,
+    wait: wait,
     add: add,
 };

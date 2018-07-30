@@ -80,6 +80,17 @@ const runMode = (
     }
 };
 
+const run = (
+    mode /*: string */,
+    args /*: Args */
+) /*: void */ => {
+    for (const i in config.modes) {
+        if (i === mode) {
+            runMode(i, args);
+        }
+    }
+};
+
 module.exports = {
-    runMode: runMode,
+    run: run,
 };

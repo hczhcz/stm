@@ -28,21 +28,11 @@ for (
     if (process.argv[i][0] === '-') {
         if (process.argv[i] === '-h' || process.argv[i] === '--help') {
             mainHelp.print();
-
-            break;
-        }
-
-        for (const j in config.args) {
-            if (j === process.argv[i]) {
-                key = j;
-            }
+        } else {
+            key = mainArgs.wait(process.argv[i]);
         }
     } else if (key === null) {
-        for (const j in config.modes) {
-            if (j === process.argv[i]) {
-                mainRun.runMode(j, args);
-            }
-        }
+        mainRun.run(process.argv[i], args);
     } else {
         mainArgs.add(args, key, process.argv[i]);
 
