@@ -3,6 +3,7 @@
 module.exports = {
     modes: {
         _encode: [
+            ['buffer', 20],
             ['zlib.compress', 2],
             ['crypto.encrypt', '-m', 32, '-k'],
         ],
