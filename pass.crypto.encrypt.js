@@ -37,9 +37,11 @@ module.exports = (
             return;
         }
 
-        next.next(nonce);
-        next.next(cipher.update(header));
-        next.next(cipher.update(firstData));
+        next.next(Buffer.concat([
+            nonce,
+            cipher.update(header),
+            cipher.update(firstData),
+        ]));
 
         for (
             let data /*: Buffer | null */ = yield;
