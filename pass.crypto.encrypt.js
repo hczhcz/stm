@@ -22,10 +22,9 @@ module.exports = (
 
         // verification info
 
-        const header /*: Buffer */ = Buffer.alloc(8);
+        const header /*: Buffer */ = Buffer.alloc(4);
 
-        header.writeUInt32BE(0xDEADBEEF, 0);
-        header.writeUInt32BE(Math.floor(Date.now() / 1000 / 60), 4);
+        header.writeUInt32BE(Math.floor(Date.now() / 1000 / 60), 0);
 
         next.next();
 

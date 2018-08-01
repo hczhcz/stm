@@ -67,7 +67,7 @@ module.exports = (
 
         buffer = decipher.update(buffer.slice(nonceLength));
 
-        while (buffer.length < 8) {
+        while (buffer.length < 4) {
             const data /*: Buffer | null */ = yield;
 
             if (data === null) {
@@ -79,12 +79,11 @@ module.exports = (
             buffer = Buffer.concat([buffer, decipher.update(data)]);
         }
 
-        const magic /*: number */ = buffer.readUInt32BE(0);
-        const timestamp /*: number */ = buffer.readUInt32BE(4);
+        const timestamp /*: number */ = buffer.readUInt32BE(0);
 
-        buffer = buffer.slice(8);
+        buffer = buffer.slice(4);
 
-        if (magic === 0xDEADBEEF && addNonce(nonce, timestamp)) {
+        if (addNonce(nonce, timestamp)) {
             next.next(buffer);
 
             for (

@@ -11,8 +11,6 @@ module.exports = (
 
         let buffer /*: Buffer */ = Buffer.alloc(0);
 
-        next.next();
-
         const update = () /*: void */ => {
             if (buffer.length) {
                 next.next(buffer);
@@ -20,6 +18,8 @@ module.exports = (
                 buffer = Buffer.alloc(0);
             }
         };
+
+        next.next();
 
         for (
             let data /*: Buffer | null */ = yield;
