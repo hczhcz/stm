@@ -100,13 +100,9 @@ module.exports = (
                 throw Error();
             }
         } else if (hang) {
-            for (
-                let data /*: Buffer | null */ = yield;
-                data !== null;
-                data = yield
-            ) {
-                // nothing
-            }
+            // TODO: log?
+
+            throw Error();
         }
 
         next.next(null);
