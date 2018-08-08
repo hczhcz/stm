@@ -11,14 +11,6 @@ module.exports = (
 
         let buffer /*: Buffer */ = Buffer.alloc(0);
 
-        const update = () /*: void */ => {
-            if (buffer.length) {
-                next.next(buffer);
-
-                buffer = Buffer.alloc(0);
-            }
-        };
-
         next.next();
 
         for (
@@ -29,12 +21,18 @@ module.exports = (
             buffer = Buffer.concat([buffer, data]);
 
             setTimeout(() /*: void */ => {
-                update();
+                if (buffer.length) {
+                    next.next(buffer);
+
+                    buffer = Buffer.alloc(0);
+                }
             }, delay);
         }
 
-        update();
+        setTimeout(() /*: void */ => {
+            // the execution order is guaranteed in the spec
 
-        next.next(null);
+            next.next(null);
+        }, delay);
     };
 };
