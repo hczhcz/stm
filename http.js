@@ -68,48 +68,43 @@ const accept = (
             code /*: string | null */
         ) /*: void */ => {
             if (code === null) {
-                socket.emit(
-                    'httpclient.data',
-                    Buffer.from(
-                        method
-                            + ' ' + address.pathname
-                            + address.search
-                            + address.hash
-                            + ' HTTP/' + httpVersion + '\r\n'
-                    )
-                );
+                const buffers /*: Array<Buffer> */ = [];
+
+                buffers.push(Buffer.from(
+                    method
+                        + ' ' + address.pathname
+                        + address.search
+                        + address.hash
+                        + ' HTTP/' + httpVersion + '\r\n'
+                ));
 
                 for (
                     let i /*: number */ = 0;
                     i < headers.length;
                     i += 1
                 ) {
-                    socket.emit(
-                        'httpclient.data',
-                        Buffer.from(
-                            headers[i][0] + ':' + headers[i][1] + '\r\n'
-                        )
-                    );
+                    buffers.push(Buffer.from(
+                        headers[i][0] + ':' + headers[i][1] + '\r\n'
+                    ));
 
                     for (
                         let j /*: number */ = 2;
                         j < headers[i].length;
                         j += 1
                     ) {
-                        socket.emit(
-                            'httpclient.data',
-                            Buffer.from(
-                                headers[i][j] + '\r\n'
-                            )
-                        );
+                        buffers.push(Buffer.from(
+                            headers[i][j] + '\r\n'
+                        ));
                     }
                 }
 
+                buffers.push(Buffer.from(
+                    '\r\n'
+                ));
+
                 socket.emit(
                     'httpclient.data',
-                    Buffer.from(
-                        '\r\n'
-                    )
+                    Buffer.concat(buffers)
                 );
 
                 establish();

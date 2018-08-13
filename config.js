@@ -61,8 +61,8 @@ module.exports = {
         '-ns': ['string', 'Address of NAT target'],
         '-np': ['number', 'Port of NAT target'],
         '-nl': ['number', 'Port of NAT source'],
-        '-m': ['string', 'Encrypt method', 'aes-256-cfb'],
-        '-k': ['string', 'Encrypt password'],
+        '-m': ['string', 'Encryption method', 'aes-256-cfb'],
+        '-k': ['string', 'Password'],
     },
 
     log: {
