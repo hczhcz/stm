@@ -50,8 +50,24 @@ const createDecipher = (
     );
 };
 
+const createHmac = (
+    algorithm /*: string */,
+    password /*: string */,
+    nonce /*: Buffer */
+) /*: crypto$Hmac */ => {
+    return crypto.createHmac(
+        algorithm,
+        crypto.scryptSync(
+            password + 'hmac',
+            nonce,
+            nonce.length
+        )
+    );
+};
+
 module.exports = {
     createNonce: createNonce,
     createCipher: createCipher,
     createDecipher: createDecipher,
+    createHmac: createHmac,
 };
