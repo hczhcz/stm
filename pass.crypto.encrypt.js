@@ -4,7 +4,8 @@ const crypto = require('./crypto');
 
 module.exports = (
     nextPass /*: Pass */,
-    algorithm /*: string */,
+    cipherAlgorithm /*: string */,
+    hashAlgorithm /*: string | null */,
     nonceLength /*: number */,
     password /*: string */
 ) /*: Pass */ => {
@@ -15,7 +16,7 @@ module.exports = (
 
         const nonce /*: Buffer */ = crypto.createNonce(nonceLength);
         const cipher /*: crypto$Cipher */ = crypto.createCipher(
-            algorithm,
+            cipherAlgorithm,
             password,
             nonce
         );
