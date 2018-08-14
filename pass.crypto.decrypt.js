@@ -5,7 +5,7 @@ const crypto = require('./crypto');
 module.exports = (
     nextPass /*: Pass */,
     cipherAlgorithm /*: string */,
-    hashAlgorithm /*: string | null */,
+    hashAlgorithm /*: string */,
     nonceLength /*: number */,
     password /*: string */,
     hang /*: boolean */
@@ -63,33 +63,111 @@ module.exports = (
             nonce
         );
 
-        buffer = decipher.update(buffer.slice(nonceLength));
+        buffer = buffer.slice(nonceLength);
 
-        while (buffer.length < 4) {
-            const data /*: Buffer | null */ = yield;
+        let result /*: Buffer | null */ = null;
 
-            if (data === null) {
-                next.next(null);
+        const fetch = function *(
+            size /*: number */
+        ) /*: BufferGenerator */ {
+            while (buffer.length < size) {
+                const data /*: Buffer | null */ = yield;
 
+                if (data === null) {
+                    result = null;
+
+                    return;
+                }
+
+                buffer = Buffer.concat([buffer, data]);
+            }
+
+            result = buffer.slice(0, size);
+            buffer = buffer.slice(size);
+        };
+
+        const decrypt = function *(
+            size /*: number */
+        ) /*: BufferGenerator */ {
+            yield *fetch(size);
+
+            if (result === null) {
                 return;
             }
 
-            buffer = Buffer.concat([buffer, decipher.update(data)]);
+            if (hashAlgorithm === 'unauthorized') {
+                result = decipher.update(result);
+            } else {
+                const decrypted /*: Buffer */ = decipher.update(result);
+
+                const hmac /*: crypto$Hmac */ = crypto.createHmac(
+                    hashAlgorithm,
+                    password,
+                    nonce
+                );
+
+                hmac.update(result);
+
+                const digest /*: Buffer */ = hmac.digest();
+
+                yield *fetch(digest.length);
+
+                if (result === null) {
+                    return;
+                }
+
+                if (digest.equals(decipher.update(result))) {
+                    result = decrypted;
+                } else {
+                    result = null;
+                }
+            }
+        };
+
+        const decryptAny = function *() /*: BufferGenerator */ {
+            if (hashAlgorithm === 'unauthorized') {
+                if (buffer.length) {
+                    result = buffer;
+                    buffer = Buffer.alloc(0);
+                } else {
+                    result = yield;
+
+                    if (result === null) {
+                        return;
+                    }
+                }
+
+                result = decipher.update(result);
+            } else {
+                yield *decrypt(4);
+
+                if (result === null) {
+                    return;
+                }
+
+                yield *decrypt(result.readUInt32BE(0));
+            }
+        };
+
+        yield *decrypt(4);
+
+        if (result === null) {
+            next.next(null);
+
+            return;
         }
 
-        const timestamp /*: number */ = buffer.readUInt32BE(0);
-
-        buffer = buffer.slice(4);
+        const timestamp /*: number */ = result.readUInt32BE(0);
 
         if (addNonce(nonce, timestamp)) {
-            next.next(buffer);
+            while (true) {
+                yield *decryptAny();
 
-            for (
-                let data /*: Buffer | null */ = yield;
-                data !== null;
-                data = yield
-            ) {
-                next.next(decipher.update(data));
+                if (result === null) {
+                    break;
+                }
+
+                next.next(result);
             }
 
             if (decipher.final().length) {
@@ -100,7 +178,13 @@ module.exports = (
         } else if (hang) {
             // TODO: log?
 
-            throw Error();
+            for (
+                let data /*: Buffer | null */ = yield;
+                data !== null;
+                data = yield
+            ) {
+                // ignore
+            }
         }
 
         next.next(null);

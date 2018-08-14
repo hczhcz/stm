@@ -5,7 +5,7 @@ const crypto = require('./crypto');
 module.exports = (
     nextPass /*: Pass */,
     cipherAlgorithm /*: string */,
-    hashAlgorithm /*: string | null */,
+    hashAlgorithm /*: string */,
     nonceLength /*: number */,
     password /*: string */
 ) /*: Pass */ => {
@@ -20,6 +20,46 @@ module.exports = (
             password,
             nonce
         );
+
+        const encrypt = (
+            data /*: Buffer */
+        ) /*: Buffer */ => {
+            if (hashAlgorithm === 'unauthorized') {
+                return cipher.update(data);
+            }
+
+            const encrypted /*: Buffer */ = cipher.update(data);
+
+            const hmac /*: crypto$Hmac */ = crypto.createHmac(
+                hashAlgorithm,
+                password,
+                nonce
+            );
+
+            hmac.update(encrypted);
+
+            return Buffer.concat([
+                encrypted,
+                cipher.update(hmac.digest()),
+            ]);
+        };
+
+        const encryptAny = (
+            data /*: Buffer */
+        ) /*: Buffer */ => {
+            if (hashAlgorithm === 'unauthorized') {
+                return cipher.update(data);
+            }
+
+            const header /*: Buffer */ = Buffer.alloc(4);
+
+            header.writeUInt32BE(data.length, 0);
+
+            return Buffer.concat([
+                encrypt(header),
+                encrypt(data),
+            ]);
+        };
 
         // verification info
 
@@ -39,8 +79,8 @@ module.exports = (
 
         next.next(Buffer.concat([
             nonce,
-            cipher.update(header),
-            cipher.update(firstData),
+            encrypt(header),
+            encryptAny(firstData),
         ]));
 
         for (
@@ -48,7 +88,7 @@ module.exports = (
             data !== null;
             data = yield
         ) {
-            next.next(cipher.update(data));
+            next.next(encryptAny(data));
         }
 
         if (cipher.final().length) {
