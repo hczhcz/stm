@@ -20,6 +20,11 @@ module.exports = (
             password,
             nonce
         );
+        const hmac /*: () => crypto$Hmac */ = crypto.createHmac(
+            hashAlgorithm,
+            password,
+            nonce
+        );
 
         const encrypt = (
             data /*: Buffer */
@@ -30,17 +35,13 @@ module.exports = (
 
             const encrypted /*: Buffer */ = cipher.update(data);
 
-            const hmac /*: crypto$Hmac */ = crypto.createHmac(
-                hashAlgorithm,
-                password,
-                nonce
-            );
+            const hmacInstance /*: crypto$Hmac */ = hmac();
 
-            hmac.update(encrypted);
+            hmacInstance.update(encrypted);
 
             return Buffer.concat([
                 encrypted,
-                cipher.update(hmac.digest()),
+                cipher.update(hmacInstance.digest()),
             ]);
         };
 

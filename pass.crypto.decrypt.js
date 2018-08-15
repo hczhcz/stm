@@ -62,6 +62,11 @@ module.exports = (
             password,
             nonce
         );
+        const hmac /*: () => crypto$Hmac */ = crypto.createHmac(
+            hashAlgorithm,
+            password,
+            nonce
+        );
 
         buffer = buffer.slice(nonceLength);
 
@@ -100,15 +105,11 @@ module.exports = (
             } else {
                 const decrypted /*: Buffer */ = decipher.update(result);
 
-                const hmac /*: crypto$Hmac */ = crypto.createHmac(
-                    hashAlgorithm,
-                    password,
-                    nonce
-                );
+                const hmacInstance /*: crypto$Hmac */ = hmac();
 
-                hmac.update(result);
+                hmacInstance.update(result);
 
-                const digest /*: Buffer */ = hmac.digest();
+                const digest /*: Buffer */ = hmacInstance.digest();
 
                 yield *fetch(digest.length);
 

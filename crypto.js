@@ -15,19 +15,18 @@ const createCipher = (
     password /*: string */,
     nonce /*: Buffer */
 ) /*: crypto$Cipher */ => {
-    return crypto.createCipheriv(
-        algorithm,
-        crypto.scryptSync(
-            password + 'key',
-            nonce,
-            cryptoInfo[algorithm][0] || nonce.length
-        ),
-        crypto.scryptSync(
-            password + 'iv',
-            nonce,
-            cryptoInfo[algorithm][1] || nonce.length
-        )
+    const key /*: Buffer */ = crypto.scryptSync(
+        password + 'key',
+        nonce,
+        cryptoInfo[algorithm][0] || nonce.length
     );
+    const iv /*: Buffer */ = crypto.scryptSync(
+        password + 'iv',
+        nonce,
+        cryptoInfo[algorithm][1] || nonce.length
+    );
+
+    return crypto.createCipheriv(algorithm, key, iv);
 };
 
 const createDecipher = (
@@ -35,34 +34,34 @@ const createDecipher = (
     password /*: string */,
     nonce /*: Buffer */
 ) /*: crypto$Decipher */ => {
-    return crypto.createDecipheriv(
-        algorithm,
-        crypto.scryptSync(
-            password + 'key',
-            nonce,
-            cryptoInfo[algorithm][0] || nonce.length
-        ),
-        crypto.scryptSync(
-            password + 'iv',
-            nonce,
-            cryptoInfo[algorithm][1] || nonce.length
-        )
+    const key /*: Buffer */ = crypto.scryptSync(
+        password + 'key',
+        nonce,
+        cryptoInfo[algorithm][0] || nonce.length
     );
+    const iv /*: Buffer */ = crypto.scryptSync(
+        password + 'iv',
+        nonce,
+        cryptoInfo[algorithm][1] || nonce.length
+    );
+
+    return crypto.createDecipheriv(algorithm, key, iv);
 };
 
 const createHmac = (
     algorithm /*: string */,
     password /*: string */,
     nonce /*: Buffer */
-) /*: crypto$Hmac */ => {
-    return crypto.createHmac(
-        algorithm,
-        crypto.scryptSync(
-            password + 'hmac',
-            nonce,
-            nonce.length
-        )
+) /*: () => crypto$Hmac */ => {
+    const key /*: Buffer */ = crypto.scryptSync(
+        password + 'hmac',
+        nonce,
+        nonce.length
     );
+
+    return () /*: crypto$Hmac */ => {
+        return crypto.createHmac(algorithm, key);
+    };
 };
 
 module.exports = {
