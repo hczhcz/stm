@@ -6,6 +6,7 @@ module.exports = (
     nextPass /*: Pass */,
     cipherAlgorithm /*: string */,
     hashAlgorithm /*: string */,
+    kdAlgorithm /*: string */,
     nonceLength /*: number */,
     password /*: string */
 ) /*: Pass */ => {
@@ -17,11 +18,13 @@ module.exports = (
         const nonce /*: Buffer */ = crypto.createNonce(nonceLength);
         const cipher /*: crypto$Cipher */ = crypto.createCipher(
             cipherAlgorithm,
+            kdAlgorithm,
             password,
             nonce
         );
         const hmacGenerator /*: () => crypto$Hmac */ = crypto.createHmac(
             hashAlgorithm,
+            kdAlgorithm,
             password,
             nonce
         );

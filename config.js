@@ -5,11 +5,11 @@ module.exports = {
         _encode: [
             ['buffer', 20],
             ['zlib.compress', 2],
-            ['crypto.encrypt', '-m', '-h', 32, '-k'],
+            ['crypto.encrypt', '-ma', '-ha', '-ka', 32, '-k'],
         ],
 
         _decode: [
-            ['crypto.decrypt', '-m', '-h', 32, '-k', true],
+            ['crypto.decrypt', '-ma', '-ha', '-ka', 32, '-k', true],
             ['zlib.decompress'],
             ['segmentation'],
         ],
@@ -61,8 +61,9 @@ module.exports = {
         '-ns': ['string', 'Address of NAT target'],
         '-np': ['number', 'Port of NAT target'],
         '-nl': ['number', 'Port of NAT source'],
-        '-m': ['string', 'Encryption method', 'aes-256-cfb'],
-        '-h': ['string', 'Hash method', 'sha256'],
+        '-ma': ['string', 'Encryption method', 'aes-256-cfb'],
+        '-ha': ['string', 'Hash method', 'sha256'],
+        '-ka': ['string', 'Key derivation method', 'pbkdf2-sha256'],
         '-k': ['string', 'Password'],
     },
 
