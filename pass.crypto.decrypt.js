@@ -62,7 +62,7 @@ module.exports = (
             password,
             nonce
         );
-        const hmac /*: () => crypto$Hmac */ = crypto.createHmac(
+        const hmacGenerator /*: () => crypto$Hmac */ = crypto.createHmac(
             hashAlgorithm,
             password,
             nonce
@@ -105,11 +105,11 @@ module.exports = (
             } else {
                 const decrypted /*: Buffer */ = decipher.update(result);
 
-                const hmacInstance /*: crypto$Hmac */ = hmac();
+                const hmac /*: crypto$Hmac */ = hmacGenerator();
 
-                hmacInstance.update(result);
+                hmac.update(result);
 
-                const digest /*: Buffer */ = hmacInstance.digest();
+                const digest /*: Buffer */ = hmac.digest();
 
                 yield *fetch(digest.length);
 
