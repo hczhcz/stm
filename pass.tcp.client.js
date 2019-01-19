@@ -7,7 +7,8 @@ const config = require('./config');
 module.exports = (
     nextPass /*: Pass */,
     address /*: string */,
-    port /*: number */
+    port /*: number */,
+    timeout /*: number */
 ) /*: Pass */ => {
     return function *(
         info /*: Info */
@@ -25,6 +26,8 @@ module.exports = (
             next.next(chunk);
         }).once('close', () /*: void */ => {
             next.next(null);
+        }).once('timeout', () /*: void */ => {
+            socket.destroy();
         }).on('error', (
             err /*: error */
         ) /*: void */ => {
@@ -35,7 +38,7 @@ module.exports = (
             if (config.log.networkErrorDetail) {
                 console.error(err);
             }
-        });
+        }).setTimeout(timeout);
 
         for (
             let data /*: Buffer | null */ = yield;

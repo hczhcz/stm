@@ -7,7 +7,8 @@ const config = require('./config');
 
 module.exports = (
     nextPass /*: Pass */,
-    port /*: number */
+    port /*: number */,
+    timeout /*: number */
 ) /*: Pass */ => {
     net.createServer({}).on('connection', (
         socket /*: net$Socket */
@@ -27,6 +28,8 @@ module.exports = (
             next.next(chunk);
         }).once('close', () /*: void */ => {
             next.next(null);
+        }).once('timeout', () /*: void */ => {
+            socket.destroy();
         }).on('error', (
             err /*: error */
         ) /*: void */ => {
@@ -37,7 +40,7 @@ module.exports = (
             if (config.log.networkErrorDetail) {
                 console.error(err);
             }
-        });
+        }).setTimeout(timeout);
     }).on('error', (
         err /*: error */
     ) /*: void */ => {
