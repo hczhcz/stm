@@ -16,13 +16,13 @@ module.exports = {
 
         _local: [
             ['_include', '_encode'],
-            ['tcp.client', '-s', '-p'],
+            ['tcp.client', '-s', '-p', 60000],
             ['_include', '_decode'],
         ],
 
         server: [
             ['_description', 'Start remote server'],
-            ['tcp.server', '-p'],
+            ['tcp.server', '-p', 60000],
             ['_include', '_decode'],
             ['proxy', false, 60000],
             ['_include', '_encode'],
