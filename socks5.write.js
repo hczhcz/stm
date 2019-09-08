@@ -122,18 +122,22 @@ const writeUDP = (
     // port
     // data
 
-    socket.send(Buffer.concat([
-        Buffer.from([
-            0x00, 0x00,
-            0x00,
+    socket.send(
+        Buffer.concat([
+            Buffer.from([
+                0x00, 0x00,
+                0x00,
+            ]),
+            getAddressHeader(task),
+            task.address,
+            Buffer.from([
+                task.port >>> 8, task.port & 0xff,
+            ]),
+            msg,
         ]),
-        getAddressHeader(task),
-        task.address,
-        Buffer.from([
-            task.port >>> 8, task.port & 0xff,
-        ]),
-        msg,
-    ]), port, address);
+        port,
+        address
+    );
 };
 
 module.exports = {
